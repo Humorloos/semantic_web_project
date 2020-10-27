@@ -1,2 +1,4 @@
 # Project exclude paths
 /target/
+/.idea/
+/semantic_web_project.iml
