@@ -8,20 +8,16 @@ import java.util.List;
 import java.util.Set;
 
 public class DBPediaNavigator {
-    String RESOURCE_URI = "http://dbpedia.org/resource/";
-    String ONTOLOGY_URI = "http://dbpedia.org/ontology/";
-    String DBPEDIA_SPARQL_ENDPOINT = "http://dbpedia.org/sparql";
-    String SPARQL_PREFIXES = "PREFIX dbr: <" + RESOURCE_URI + "> PREFIX dbo: <" + ONTOLOGY_URI + "> ";
+    private static final String RESOURCE_URI = "http://dbpedia.org/resource/";
+    private static final String ONTOLOGY_URI = "http://dbpedia.org/ontology/";
+    private static final String DBPEDIA_SPARQL_ENDPOINT = "http://dbpedia.org/sparql";
+    private static final String SPARQL_PREFIXES =
+        "PREFIX dbr: <" + RESOURCE_URI + "> PREFIX dbo: <" + ONTOLOGY_URI + "> ";
 
     /** Model containing all valid triples belonging to previously seen resources. */
-    protected Model memoryModel;
+    protected Model memoryModel = ModelFactory.createDefaultModel();
     /** Set of Resources that were already seen by the user. */
-    protected Set<String> previousResources;
-
-    public DBPediaNavigator() {
-        memoryModel = ModelFactory.createDefaultModel();
-        previousResources = Sets.newHashSet();
-    }
+    protected Set<String> previousResources = Sets.newHashSet();
 
     /**
      * Loads all triples belonging to the provided resource from DBPedia and adds the valid ones to the 
@@ -29,17 +25,18 @@ public class DBPediaNavigator {
      * triples is rather limited) and whose subject and object both are from DBPedia.
      * @param newResource Name of the new resource to register
      */
-    public void registerNewResource(String newResource) {
-        Query describeQuery = QueryFactory.create(SPARQL_PREFIXES + "DESCRIBE dbr:" + newResource);
-        QueryExecution describeExecution = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT, describeQuery);
-        Model description = describeExecution.execDescribe();
-        Query constructQuery = QueryFactory.create(SPARQL_PREFIXES +
+    public void registerNewResource(final String newResource) {
+        final Query describeQuery = QueryFactory.create(SPARQL_PREFIXES + "DESCRIBE dbr:" + newResource);
+        final QueryExecution describeExecution = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT,
+            describeQuery);
+        final Model description = describeExecution.execDescribe();
+        final Query constructQuery = QueryFactory.create(SPARQL_PREFIXES +
                 "CONSTRUCT { ?s ?p ?o } " +
                 "WHERE { ?s ?p ?o " +
                 "FILTER (?p != dbo:wikiPageWikiLink " +
                 "&& ((?s=dbr:" + newResource + " && regex(str(?o), \"" + RESOURCE_URI + "\")) " +
                 "|| (?o=dbr:" + newResource + " && regex(str(?s), \"" + RESOURCE_URI + "\"))))}");
-        QueryExecution constructExecution = QueryExecutionFactory.create(constructQuery, description);
+        final QueryExecution constructExecution = QueryExecutionFactory.create(constructQuery, description);
         memoryModel = constructExecution.execConstruct(memoryModel);
         previousResources.add(newResource);
     }
@@ -51,14 +48,15 @@ public class DBPediaNavigator {
      * seen resources the resources are connected to (?occurrences)
      */
     public List<QuerySolution> findNextDestinations() {
-        String previousResourceFilter = "FILTER(?new_word Not IN (dbr:" + String.join(", dbr:", previousResources) + "))";
-        Query orderQuery = QueryFactory.create(SPARQL_PREFIXES +
+        final String previousResourceFilter =
+            "FILTER(?new_word Not IN (dbr:" + String.join(", dbr:", previousResources) + "))";
+        final Query orderQuery = QueryFactory.create(SPARQL_PREFIXES +
                 "SELECT ?new_word (count(distinct ?old_word) AS ?occurrences) " +
                 "WHERE { { ?old_word ?p ?new_word " + previousResourceFilter + "} " +
                 "UNION {?new_word ?p ?old_word " + previousResourceFilter + "}}" +
                 "GROUP BY ?new_word ORDER BY desc(?occurrences)");
-        QueryExecution orderExecution = QueryExecutionFactory.create(orderQuery, memoryModel);
-        ResultSet result = orderExecution.execSelect();
+        final QueryExecution orderExecution = QueryExecutionFactory.create(orderQuery, memoryModel);
+        final ResultSet result = orderExecution.execSelect();
         return IteratorUtils.toList(result);
     }
 
