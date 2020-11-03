@@ -11,9 +11,9 @@ class DBPediaNavigatorIT {
     void findNextDestinationsFindsCorrectNumberOfDestinationsAfterAddingSomeResources() {
         // given
         DBPediaNavigator cut = new DBPediaNavigator();
-        // when
         cut.registerNewResource("Mannheim");
         cut.registerNewResource("SAP_Arena");
+        // when
         List<QuerySolution> result = cut.findNextDestinations();
         // then
         assertThat(result).hasSize(571);
