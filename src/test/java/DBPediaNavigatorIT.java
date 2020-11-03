@@ -4,22 +4,18 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
-class DBPediaNavigatorTest {
+class DBPediaNavigatorIT {
 
     @Test
-    void registerNewResource() {
+    void findNextDestinationsFindsCorrectNumberOfDestinationsAfterAddingSomeResources() {
         // given
         DBPediaNavigator cut = new DBPediaNavigator();
         // when
         cut.registerNewResource("Mannheim");
-        // then
-        // when
-        cut.registerNewResource("Ernst_Gaber");
-        // then
-        // when
+        cut.registerNewResource("SAP_Arena");
         List<QuerySolution> result = cut.findNextDestinations();
-        assertThat(result).hasSize(568);
+        // then
+        assertThat(result).hasSize(571);
     }
 }
