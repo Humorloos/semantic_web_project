@@ -16,6 +16,7 @@ public class TopicManagerSampleImpl implements TopicManager {
 
 	public TopicManagerSampleImpl() {
 		navigator = new DBPediaNavigator();
+		navigator.setNumber(10);
 	}
 
 	@Override
