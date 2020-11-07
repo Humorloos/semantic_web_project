@@ -1,7 +1,8 @@
-import com.google.common.collect.Sets;
+package backend;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -13,7 +14,9 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.core.ResultBinding;
 
-public class DBPediaNavigator implements controller.DBPediaNav{
+import com.google.common.collect.Sets;
+
+public class DBPediaNavigator {
 
   private static final String RESOURCE_URI = "http://dbpedia.org/resource/";
   private static final String ONTOLOGY_URI = "http://dbpedia.org/ontology/";
@@ -30,7 +33,7 @@ public class DBPediaNavigator implements controller.DBPediaNav{
   /**
    * Set of Resources that were already seen by the user.
    */
-  public Set<String> previousResources = Sets.newHashSet();
+  protected Set<String> previousResources = Sets.newHashSet();
   /**
    * Number of resources to propose in each step
    */
@@ -121,7 +124,7 @@ public class DBPediaNavigator implements controller.DBPediaNav{
     final QueryExecution propertyExecution = QueryExecutionFactory.create(propertyQuery, memoryModel);
     return propertyExecution.execSelect();
   }
-  
+
 //  public static void main(String[] args) {
 //	  DBPediaNavigator db = new DBPediaNavigator(20);
 //	  db.registerNewResource("Mannheim");
