@@ -13,7 +13,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.core.ResultBinding;
 
-public class DBPediaNavigator {
+public class DBPediaNavigator implements controller.DBPediaNav{
 
   private static final String RESOURCE_URI = "http://dbpedia.org/resource/";
   private static final String ONTOLOGY_URI = "http://dbpedia.org/ontology/";
@@ -30,11 +30,23 @@ public class DBPediaNavigator {
   /**
    * Set of Resources that were already seen by the user.
    */
-  protected Set<String> previousResources = Sets.newHashSet();
+  public Set<String> previousResources = Sets.newHashSet();
   /**
    * Number of resources to propose in each step
    */
   protected int numberOfProposals;
+  
+  public DBPediaNavigator() {
+	  
+  }
+  
+  public Set<String> getPreviousResources() {
+	  return this.previousResources;
+  }
+  
+  public void setNumber(int num) {
+	  this.numberOfProposals = num;
+  }
 
   public DBPediaNavigator(final int numberOfProposals) {
     this.numberOfProposals = numberOfProposals;
@@ -109,4 +121,13 @@ public class DBPediaNavigator {
     final QueryExecution propertyExecution = QueryExecutionFactory.create(propertyQuery, memoryModel);
     return propertyExecution.execSelect();
   }
+  
+//  public static void main(String[] args) {
+//	  DBPediaNavigator db = new DBPediaNavigator(20);
+//	  db.registerNewResource("Mannheim");
+//	  List<QuerySolution> result = db.findNextProposals(db.previousResources.iterator().next());
+//	  for(QuerySolution qs: result) {
+//		  System.out.println(qs);
+//	  }
+//  }
 }
