@@ -6,12 +6,12 @@ import java.util.ResourceBundle;
 
 import org.apache.jena.query.QuerySolution;
 
+import backend.TopicManager;
+import backend.TopicManagerSampleImpl;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
@@ -23,6 +23,8 @@ import javafx.scene.text.TextFlow;
  */
 public class MainSceneController implements Initializable {
 
+	private static final int NUM_OF_SUGGESTIONS = 10; // TODO let the user change this
+
 	@FXML
 	private Button btn1;
 	@FXML
@@ -30,9 +32,12 @@ public class MainSceneController implements Initializable {
 	@FXML
 	private TextFlow textArea1;
 
+	private TopicManager topicManager;
+
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		// TODO Auto-generated method stub
+		this.topicManager = new TopicManagerSampleImpl();
 	}
 
 	public String onClick() {
@@ -45,38 +50,20 @@ public class MainSceneController implements Initializable {
 	public void setResult(String s) {
 		// textArea1.setText(s);
 		// register the new Resource
-		Class<?> calcClass;
-		DBPediaNav db;
-		try {
-			calcClass = Class.forName("DBPediaNavigator");
-			db = (DBPediaNav) calcClass.newInstance();
-			db.registerNewResource(s);
-			db.setNumber(10);
-			//vorher
-			List<QuerySolution> result = db.findNextProposals(db.getPreviousResources().iterator().next());
-			
-			int count = 0;
-			StringBuffer sb = new StringBuffer();
-			for (QuerySolution qs : result) {
-				sb.append(qs+"\n");
-				count++;
-			}
-			Text erg = new Text(sb.toString());
-			textArea1.getChildren().addAll(erg);
-			
-			System.out.println(count);
-			
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		topicManager.addResourceToTopics(s);
+		// vorher
+		List<QuerySolution> result = topicManager.getSuggestionsForCurrentTopic(NUM_OF_SUGGESTIONS);
 
+		int count = 0;
+		StringBuffer sb = new StringBuffer();
+		for (QuerySolution qs : result) {
+			sb.append(qs + "\n");
+			count++;
+		}
+		Text erg = new Text(sb.toString());
+		textArea1.getChildren().addAll(erg);
+
+		System.out.println(count);
 	}
 
 }
