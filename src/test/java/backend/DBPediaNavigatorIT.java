@@ -1,10 +1,11 @@
-import java.util.function.Function;
-import org.apache.jena.query.QuerySolution;
-import org.junit.jupiter.api.Test;
+package backend;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.function.Function;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.apache.jena.query.QuerySolution;
+import org.junit.jupiter.api.Test;
 
 class DBPediaNavigatorIT {
 

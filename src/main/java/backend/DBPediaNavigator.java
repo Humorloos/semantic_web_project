@@ -1,7 +1,8 @@
-import com.google.common.collect.Sets;
+package backend;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -12,6 +13,8 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.core.ResultBinding;
+
+import com.google.common.collect.Sets;
 
 public class DBPediaNavigator {
 
@@ -35,6 +38,18 @@ public class DBPediaNavigator {
    * Number of resources to propose in each step
    */
   protected int numberOfProposals;
+  
+  public DBPediaNavigator() {
+	  
+  }
+  
+  public Set<String> getPreviousResources() {
+	  return this.previousResources;
+  }
+  
+  public void setNumber(int num) {
+	  this.numberOfProposals = num;
+  }
 
   public DBPediaNavigator(final int numberOfProposals) {
     this.numberOfProposals = numberOfProposals;
@@ -109,4 +124,13 @@ public class DBPediaNavigator {
     final QueryExecution propertyExecution = QueryExecutionFactory.create(propertyQuery, memoryModel);
     return propertyExecution.execSelect();
   }
+
+//  public static void main(String[] args) {
+//	  DBPediaNavigator db = new DBPediaNavigator(20);
+//	  db.registerNewResource("Mannheim");
+//	  List<QuerySolution> result = db.findNextProposals(db.previousResources.iterator().next());
+//	  for(QuerySolution qs: result) {
+//		  System.out.println(qs);
+//	  }
+//  }
 }
