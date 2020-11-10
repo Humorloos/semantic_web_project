@@ -1,5 +1,8 @@
 package controller;
 
+import static backend.TopicManagerImpl.RESOURCE_URI;
+
+import backend.TopicManagerImpl;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -7,7 +10,6 @@ import java.util.ResourceBundle;
 import org.apache.jena.query.QuerySolution;
 
 import backend.TopicManager;
-import backend.TopicManagerSampleImpl;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
@@ -19,7 +21,7 @@ import javafx.scene.text.TextFlow;
 /**
  * Controller class of the main {@link Scene} of the app. Handles every
  * interaction with the ui in this scene.
- * 
+ *
  */
 public class MainSceneController implements Initializable {
 
@@ -37,7 +39,7 @@ public class MainSceneController implements Initializable {
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		// TODO Auto-generated method stub
-		this.topicManager = new TopicManagerSampleImpl();
+		this.topicManager = new TopicManagerImpl();
 	}
 
 	public String onClick() {
@@ -50,7 +52,7 @@ public class MainSceneController implements Initializable {
 	public void setResult(String s) {
 		// textArea1.setText(s);
 		// register the new Resource
-		topicManager.addResourceToTopics(s);
+		topicManager.addResourceToTopics(RESOURCE_URI + s);
 		// vorher
 		List<QuerySolution> result = topicManager.getSuggestionsForCurrentTopic(NUM_OF_SUGGESTIONS);
 

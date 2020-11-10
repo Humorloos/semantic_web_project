@@ -7,18 +7,20 @@ import java.util.function.Function;
 import org.apache.jena.query.QuerySolution;
 import org.junit.jupiter.api.Test;
 
-class DBPediaNavigatorIT {
+class TopicManagerImplIT {
+
+  private static final String RESOURCE_URI = "http://dbpedia.org/resource/";
 
   @Test
   void findNextDestinationsFindsCorrectNumberOfDestinationsAfterAddingSomeResources() {
     // given
     final int nProposals = 8;
-    final DBPediaNavigator cut = new DBPediaNavigator(nProposals);
-    cut.registerNewResource("Mannheim");
-    final String currentResource = "SAP_Arena";
-    cut.registerNewResource(currentResource);
+    final TopicManagerImpl cut = new TopicManagerImpl();
+    cut.addResourceToTopics(RESOURCE_URI + "Mannheim");
+    final String currentResource = RESOURCE_URI + "SAP_Arena";
+    cut.addResourceToTopics(currentResource);
     // when
-    final List<QuerySolution> result = cut.findNextProposals(currentResource);
+    final List<QuerySolution> result = cut.getSuggestionsForCurrentTopic(nProposals);
     // then
     assertThat(result).hasSize(nProposals)
         .allSatisfy(resultBinding -> assertThat(

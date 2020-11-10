@@ -31,7 +31,7 @@ public interface TopicManager {
 	/**
 	 * Get a List of resources that would be suggested based on all accepted topics
 	 * so far. If there already are suggestions stored, those will be returned,
-	 * otherwise the {@link DBPediaNavigator} will fetch a new list of suggestions.
+	 * otherwise the {@link TopicManagerImpl} will fetch a new list of suggestions.
 	 * 
 	 * @param numOfSuggestions The number of suggestions to make.
 	 * @return {@link List} of {@link QuerySolution}s with the topics that were
@@ -42,7 +42,7 @@ public interface TopicManager {
 	/**
 	 * Get a List of resources that would be suggested based on a given resource. If
 	 * there already are suggestions stored, those will be returned, otherwise the
-	 * {@link DBPediaNavigator} will fetch a new list of suggestions.
+	 * {@link TopicManagerImpl} will fetch a new list of suggestions.
 	 * 
 	 * @param numOfSuggestions The number of suggestions to make.
 	 * @return {@link List} of {@link QuerySolution}s with the topics that were
