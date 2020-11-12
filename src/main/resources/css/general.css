@@ -3,3 +3,26 @@
 /**
  * This file contains all the uniform styling that all scenes will share and that is not specific to a certain Scene.
  */
+
+* {
+	-fx-font-family: "Lucida Sans";
+}
+
+.label {
+	-fx-font-size: 14;
+	-fx-text-fill: -fx-black;
+}
+
+.cell {
+	-fx-background-color: -fx-white;
+	-fx-border-width: 0 0 0 2;
+	-fx-border-color: transparent;
+}
+
+.cell:hover {
+	-fx-border-color: -fx-secondary;
+}
+
+.scroll-pane {
+	-fx-background-color: transparent;
+}
