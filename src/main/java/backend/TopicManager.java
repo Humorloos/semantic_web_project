@@ -1,5 +1,6 @@
 package backend;
 
+import backend.exception.InvalidUriInputException;
 import java.util.List;
 
 import org.apache.jena.query.QuerySolution;
@@ -15,10 +16,10 @@ public interface TopicManager {
 
 	/**
 	 * Add the given resource to the user's list of topics.
-	 * 
+	 *
 	 * @param resourceUrl The Url identifying the resource to add.
 	 */
-	public void addResourceToTopics(String resourceUrl);
+	void addResourceToTopics(String resourceUrl) throws InvalidUriInputException;
 
 	/**
 	 * Get specific information on a given resource (Link to wikipedia etc.)
@@ -26,7 +27,7 @@ public interface TopicManager {
 	 * @param resourceUrl The Url identifying the {@link Resource} to remove.
 	 * @return {@link TopicInfo} of some sort, containing info about the topic.
 	 */
-	public TopicInfo getInformationAboutTopic(String resourceUrl);
+	TopicInfo getInformationAboutTopic(String resourceUrl);
 
 	/**
 	 * Get a List of resources that would be suggested based on all accepted topics
@@ -37,7 +38,7 @@ public interface TopicManager {
 	 * @return {@link List} of {@link QuerySolution}s with the topics that were
 	 *         suggested.
 	 */
-	public List<QuerySolution> getSuggestionsForAllTopics(int numOfSuggestions);
+	List<QuerySolution> getSuggestionsForAllTopics(int numOfSuggestions);
 
 	/**
 	 * Get a List of resources that would be suggested based on a given resource. If
@@ -48,7 +49,7 @@ public interface TopicManager {
 	 * @return {@link List} of {@link QuerySolution}s with the topics that were
 	 *         suggested.
 	 */
-	public List<QuerySolution> getSuggestionsForCurrentTopic(int numOfSuggestions);
+	List<QuerySolution> getSuggestionsForCurrentTopic(int numOfSuggestions);
 
 	/**
 	 * Loads all previously suggested topics for a given initial resource. If there
@@ -58,18 +59,18 @@ public interface TopicManager {
 	 *                        use as a base for searching.
 	 * @return A List of Strings with the topics that were suggested so far.
 	 */
-	public List<String> loadAcceptedTopicsForInitialResource(String initialResource);
+	List<String> loadAcceptedTopicsForInitialResource(String initialResource);
 
 	/**
 	 * Remove the given resource from the user's list of topics.
 	 * 
 	 * @param resourceUrl The Url identifying the {@link Resource} to remove.
 	 */
-	public void removeResourceFromTopics(String resourceUrl);
+	void removeResourceFromTopics(String resourceUrl);
 
-	/**
-	 * TODO Blacklist is an optional feature for now.
-	 */
+//	/**
+//	 * TODO Blacklist is an optional feature for now.
+//	 */
 //	public void addResourceToBlackList(String resourceUrl);
 
 //	public void removeResourceFromBlackList(String resourceUrl);

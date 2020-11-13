@@ -1,4 +1,5 @@
 package backend;
+import backend.exception.InvalidUriInputException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -49,11 +50,14 @@ public class TopicManagerImpl implements TopicManager{
    * @param resourceUrl URI of the resource to add
    */
   @Override
-  public void addResourceToTopics(final String resourceUrl) {
+  public void addResourceToTopics(final String resourceUrl) throws InvalidUriInputException {
     final Query describeQuery = QueryFactory.create(SPARQL_PREFIXES + "DESCRIBE <" + resourceUrl + ">");
     final QueryExecution describeExecution = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT,
         describeQuery);
     final Model description = describeExecution.execDescribe();
+    if (description.isEmpty()) {
+      throw new InvalidUriInputException(resourceUrl);
+    }
     final Query constructQuery = QueryFactory.create(SPARQL_PREFIXES +
         "CONSTRUCT { ?s ?p ?o } " +
         "WHERE { ?s ?p ?o " +
