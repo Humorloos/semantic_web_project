@@ -1,5 +1,6 @@
 package ui.controller;
 
+import backend.exception.InvalidUriInputException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -61,7 +62,11 @@ public class MainSceneController implements Initializable {
 	public void setResult(String s) {
 		// textArea1.setText(s);
 		// register the new Resource
-		topicManager.addResourceToTopics(TopicManagerImpl.RESOURCE_URI + s);
+		try {
+			topicManager.addResourceToTopics(TopicManagerImpl.RESOURCE_URI + s);
+		} catch (InvalidUriInputException e) {
+			e.printStackTrace();
+		}
 		// vorher
 		List<QuerySolution> result = topicManager.getSuggestionsForCurrentTopic(NUM_OF_SUGGESTIONS);
 		
