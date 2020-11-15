@@ -55,9 +55,9 @@ public class ProposedTopicList {
 
 		for (QuerySolution resource : proposals) {
 			// TODO currently generates a 'label' from the URL -> use actual label
-			String url = resource.get("?new_word").toString();
+			String url = resource.get("uri").toString();
 			ProposedTopicListEntry entry = new ProposedTopicListEntry(url,
-					url.split("\\/")[url.split("\\/").length - 1], "https://wikipedia.de");
+					url.split("/")[url.split("/").length - 1], "https://wikipedia.de");
 			topicList.getChildren().add(entry.getRoot());
 		}
 	}

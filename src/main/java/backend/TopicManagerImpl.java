@@ -1,9 +1,10 @@
 package backend;
+
 import backend.exception.InvalidUriInputException;
+import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import model.TopicInfo;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.jena.query.Query;
@@ -14,18 +15,16 @@ import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.core.ResultBinding;
 
-import com.google.common.collect.Sets;
-
-public class TopicManagerImpl implements TopicManager{
+public class TopicManagerImpl implements TopicManager {
 
   public static final String RESOURCE_URI = "http://dbpedia.org/resource/";
   private static final String ONTOLOGY_URI = "http://dbpedia.org/ontology/";
   private static final String DBPEDIA_SPARQL_ENDPOINT = "http://dbpedia.org/sparql";
-  private static final String SPARQL_PREFIXES =
-      "PREFIX dbr: <" + RESOURCE_URI + "> PREFIX dbo: <" + ONTOLOGY_URI + "> ";
+  private static final String SPARQL_PREFIXES = "PREFIX dbr: <" + RESOURCE_URI + "> "
+      + "PREFIX dbo: <" + ONTOLOGY_URI + "> "
+      + "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> ";
   private static final String MEANINGLESS_PROPERTY = "dbo:wikiPageWikiLink";
 
 
@@ -48,6 +47,7 @@ public class TopicManagerImpl implements TopicManager{
    * limited) and whose subject and object both are from DBPedia.
    *
    * @param resourceUrl URI of the resource to add
+   * @throws InvalidUriInputException if the provided resource is not specified in DBPedia
    */
   @Override
   public void addResourceToTopics(final String resourceUrl) throws InvalidUriInputException {
@@ -58,12 +58,25 @@ public class TopicManagerImpl implements TopicManager{
     if (description.isEmpty()) {
       throw new InvalidUriInputException(resourceUrl);
     }
-    final Query constructQuery = QueryFactory.create(SPARQL_PREFIXES +
-        "CONSTRUCT { ?s ?p ?o } " +
-        "WHERE { ?s ?p ?o " +
-        "FILTER (?p != " + MEANINGLESS_PROPERTY + " " +
-        "&& ((?s=<" + resourceUrl + "> && regex(str(?o), \"" + RESOURCE_URI + "\")) " +
-        "|| (?o=<" + resourceUrl + "> && regex(str(?s), \"" + RESOURCE_URI + "\"))))}");
+    final Query constructQuery = QueryFactory.create(SPARQL_PREFIXES
+        + "CONSTRUCT { ?s ?p ?o } "
+        + "WHERE { ?s ?p ?o "
+        + "FILTER ("
+        // Include all triples, where:
+        // * subject or object is the new resource
+        // * the resource that is not the new resource is from dbpedia
+        // * the predicate is not a meaningless property
+        + "  ?p != " + MEANINGLESS_PROPERTY
+        + "  && ("
+        + "    ("
+        + "      ?s=<" + resourceUrl + ">"
+        + "      && strstarts(str(?o), \"" + RESOURCE_URI + "\")"
+        + "    ) || ("
+        + "      ?o=<" + resourceUrl + ">"
+        + "      && strstarts(str(?s), \"" + RESOURCE_URI + "\")"
+        + "    )"
+        + "  )"
+        + ")}");
     final QueryExecution constructExecution = QueryExecutionFactory.create(constructQuery, description);
     memoryModel = constructExecution.execConstruct(memoryModel);
     previousResources.add(resourceUrl);
@@ -71,13 +84,14 @@ public class TopicManagerImpl implements TopicManager{
   }
 
   /**
-   * Finds numOfSuggestions resources with most links to previous resources and at least one link to the
-   * current resource, ordered by the number of links to previous resources together with one property each connecting
-   * them to the current resource.
+   * Finds numOfSuggestions resources with most links to previous resources and at least one link to the current
+   * resource, ordered by the number of links to previous resources together with one property each connecting them to
+   * the current resource.
    *
    * @param numOfSuggestions the number of resources to return as suggestisons
-   * @return List of {@link ResultBinding}, each containing a variable "new_word" which is bound to the new resource and
-   * a variable "sample_property" which is bound to one property connecting the new resource to the current resource
+   * @return List of {@link ResultBinding}, each containing a variable "uri" which is bound to the new resource's URI, a
+   * variable "label" which is bound to the new resource's label, and a variable "sample_property" which is bound to one
+   * property connecting the new resource to the current resource
    */
   @Override
   public List<QuerySolution> getSuggestionsForCurrentTopic(final int numOfSuggestions) {
@@ -100,15 +114,29 @@ public class TopicManagerImpl implements TopicManager{
         i++;
       }
     }
-    // Get a random property that connects each new resource to the current resource
+    // Add labels of proposals to memoryModel
+    final Query constructQuery = QueryFactory.create(SPARQL_PREFIXES
+        + "CONSTRUCT { ?s ?p ?o } "
+        + "WHERE { ?s ?p ?o "
+        + "FILTER ("
+        + "  ?s IN (<" + String.join(">, <", proposals) + ">)"
+        + "  && ?p = rdfs:label"
+        + "  && langMatches(lang(?o), \"EN\")"
+        + ")}");
+    final QueryExecution constructExecution = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT,
+        constructQuery);
+    memoryModel = constructExecution.execConstruct(memoryModel);
+    // Get a random property that connects each new resource to the current resource together with the new resources'
+    // uris and labels
     final ResultSet result = getSelectQueryResultSet(SPARQL_PREFIXES +
-        "SELECT ?new_word (SAMPLE(?property) AS ?sample_property) "
-        + "WHERE { { ?current_word ?property ?new_word } "
-        + "UNION {?new_word ?property ?current_word} "
+        "SELECT ?uri ?label (SAMPLE(?property) AS ?sample_property)"
+        + "WHERE { { ?current_word ?property ?uri } "
+        + "UNION {?uri ?property ?current_word} "
+        + "?uri rdfs:label ?label "
         + "FILTER(?property != " + MEANINGLESS_PROPERTY
         + " && ?current_word = <" + currentTopic + ">"
-        + " && ?new_word IN (<" + String.join(">, <", proposals) + ">))} "
-        + "GROUP BY ?new_word");
+        + " && ?uri IN (<" + String.join(">, <", proposals) + ">))} "
+        + "GROUP BY ?uri ?label");
     return IteratorUtils.toList(result);
   }
 
@@ -132,9 +160,9 @@ public class TopicManagerImpl implements TopicManager{
 
   }
 
-private ResultSet getSelectQueryResultSet(final String queryString) {
-  final Query propertyQuery = QueryFactory.create(queryString);
-  final QueryExecution propertyExecution = QueryExecutionFactory.create(propertyQuery, memoryModel);
-  return propertyExecution.execSelect();
-}
+  private ResultSet getSelectQueryResultSet(final String queryString) {
+    final Query propertyQuery = QueryFactory.create(queryString);
+    final QueryExecution propertyExecution = QueryExecutionFactory.create(propertyQuery, memoryModel);
+    return propertyExecution.execSelect();
+  }
 }

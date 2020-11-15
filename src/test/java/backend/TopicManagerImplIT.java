@@ -27,12 +27,16 @@ class TopicManagerImplIT {
     // then
     assertThat(result).hasSize(nProposals)
         .allSatisfy(resultBinding -> assertThat(
-            List.of("new_word", "sample_property").stream().map((Function<String, Object>) resultBinding::contains))
+            List.of("uri", "sample_property", "label").stream().map((Function<String, Object>) resultBinding::contains))
             .as("each result set must contain the variables 'new_word' and 'sample_property'")
             .containsOnly(true))
-        .anySatisfy(resultBinding -> assertThat(resultBinding.get("new_word").toString().contains("2014–15_DEL_season"))
-            .as("some proposal must contain the resource '2014-15_DEL_season'")
-            .isTrue());
+        .as("some proposal must have label '2014-15 DEL season' and corresponding URI")
+        .anySatisfy(resultBinding -> {
+          final String proposal = "2014–15_DEL_season";
+          assertThat(resultBinding.get("uri").toString().contains(proposal))
+              .isTrue();
+          assertThat(resultBinding.get("label").asLiteral().getString()).isEqualTo(proposal.replace("_", " "));
+        });
   }
 
   @Test
