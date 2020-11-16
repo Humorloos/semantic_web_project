@@ -1,5 +1,6 @@
 package ui.controller;
 
+
 import java.io.IOException;
 import java.util.List;
 
@@ -51,7 +52,7 @@ public class ProposedTopicList {
 	 *                  information about each proposed topic.
 	 */
 	protected void clearAndPopulateList(List<QuerySolution> proposals) {
-		topicList.getChildren().clear();
+		topicList.getChildren().clear();	
 
 		for (QuerySolution resource : proposals) {
 			// TODO currently generates a 'label' from the URL -> use actual label
@@ -60,6 +61,8 @@ public class ProposedTopicList {
 					url.split("/")[url.split("/").length - 1], "https://wikipedia.de");
 			topicList.getChildren().add(entry.getRoot());
 		}
+		
 	}
 
+	
 }

@@ -1,10 +1,18 @@
 package ui.controller;
 
+
+import java.awt.Desktop;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import javafx.event.ActionEvent;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 
 /**
@@ -18,6 +26,10 @@ public class ProposedTopicListEntry {
 
 	@FXML
 	private Label resourceLabel;
+	@FXML
+	private Hyperlink hyper1;
+	@FXML
+	private Button btn1;
 
 	private String label, url, wikiLink;
 
@@ -50,10 +62,31 @@ public class ProposedTopicListEntry {
 			e.printStackTrace();
 		}
 
-		resourceLabel.setText(label);
+		resourceLabel.setText(label);	
+		//hyper1.setVisible(false);
+		//btn1.setVisible(false);
+		hyper1.setText(this.wikiLink);
+		btn1.setText("add to my topics ");
+		
+		
+	    resourceLabel.setOnMouseClicked((mouseEvent) -> {
+            System.out.println("label clicked");
+ 
+		});
+	   
+	  
+        hyper1.setOnAction((ActionEvent e) -> {
+        	try {
+				Desktop.getDesktop().browse(new URI(wikiUrl));
+			} catch (IOException | URISyntaxException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+        });
+        
 	}
 
 	public Parent getRoot() {
 		return root;
-	}
+	}	
 }
