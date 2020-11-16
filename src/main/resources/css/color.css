@@ -6,6 +6,8 @@
 	-fx-primary:  rgb(211.0,146.0, 71.0,1.0);	/* Main Primary color */
  	-fx-secondary:   rgb(49.0,106.0, 133.0,1.0) ;	/* Main Secondary color */
  	
+ 	-fx-grey: rgb(39, 37, 34);
+ 	-fx-light-grey: rgb(180, 175, 170);
  	-fx-black: rgb(11.0, 9.0, 7.0); /** Variant of Black */
  	-fx-white: rgb(255.0, 251.0, 246.0); /** Variant of White */
 	/* These colors are just temorary placeholders that we can change at any time. */
