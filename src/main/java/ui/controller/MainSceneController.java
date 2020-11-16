@@ -7,6 +7,7 @@ import java.util.ResourceBundle;
 
 import org.apache.jena.query.QuerySolution;
 
+import application.SWTApplication;
 import backend.TopicManager;
 import backend.TopicManagerImpl;
 import javafx.fxml.FXML;
@@ -35,13 +36,12 @@ public class MainSceneController implements Initializable {
 	@FXML
 	private TextFlow textArea1;
 
-	private TopicManager topicManager;
 	private ProposedTopicList proposedTopicList;
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		// TODO Auto-generated method stub
-		this.topicManager = new TopicManagerImpl();
+		SWTApplication.setTopicManager(new TopicManagerImpl());
 		this.proposedTopicList = new ProposedTopicList();
 		this.proposedTopicBase.getChildren().add(proposedTopicList.getRoot());
 		
@@ -63,12 +63,12 @@ public class MainSceneController implements Initializable {
 		// textArea1.setText(s);
 		// register the new Resource
 		try {
-			topicManager.addResourceToTopics(TopicManagerImpl.RESOURCE_URI + s);
+			SWTApplication.getTopicManager().addResourceToTopics(TopicManagerImpl.RESOURCE_URI + s);
 		} catch (InvalidUriInputException e) {
 			e.printStackTrace();
 		}
 		// vorher
-		List<QuerySolution> result = topicManager.getSuggestionsForCurrentTopic(NUM_OF_SUGGESTIONS);
+		List<QuerySolution> result = SWTApplication.getTopicManager().getSuggestionsForCurrentTopic(NUM_OF_SUGGESTIONS);
 		
 		proposedTopicList.clearAndPopulateList(result);
 		

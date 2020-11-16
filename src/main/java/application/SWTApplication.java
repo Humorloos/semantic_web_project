@@ -1,6 +1,8 @@
 package application;
 
 import java.io.IOException;
+
+import backend.TopicManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -12,6 +14,12 @@ import javafx.stage.Stage;
  * relevant instances of {@link Scene}s and their controller-classes.
  */
 public class SWTApplication extends Application {
+	
+	private static TopicManager topicManager;
+
+	public static TopicManager getTopicManager() {
+		return topicManager;
+	}
 
 	/**
 	 * Starts the {@link Application}.
@@ -21,13 +29,17 @@ public class SWTApplication extends Application {
 	public static void main(String[] args) {
 		launch(args);
 	}
-
+	public static void setTopicManager(TopicManager topicManager) {
+		SWTApplication.topicManager = topicManager;
+	}
 	private Stage window;
+
 	/**
 	 * The main {@link Scene} of the application, where the user receives proposals
 	 * and interacts with the knowledge model.
 	 */
 	private Scene mainScene;
+
 	/**
 	 * Controller class for the main scene.
 	 */
