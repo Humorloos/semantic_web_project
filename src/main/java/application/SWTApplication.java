@@ -5,16 +5,18 @@ import java.io.IOException;
 import backend.TopicManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
-import javafx.fxml.Initializable;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
+import ui.controller.MainSceneController;
 
 /**
  * The {@link Application} class that starts the app and initializes all
  * relevant instances of {@link Scene}s and their controller-classes.
  */
 public class SWTApplication extends Application {
-	
+
 	private static TopicManager topicManager;
 
 	public static TopicManager getTopicManager() {
@@ -29,9 +31,11 @@ public class SWTApplication extends Application {
 	public static void main(String[] args) {
 		launch(args);
 	}
+
 	public static void setTopicManager(TopicManager topicManager) {
 		SWTApplication.topicManager = topicManager;
 	}
+
 	private Stage window;
 
 	/**
@@ -43,9 +47,9 @@ public class SWTApplication extends Application {
 	/**
 	 * Controller class for the main scene.
 	 */
-	private Initializable mainController;
+	private static MainSceneController mainController;
 
-	public Initializable getMainController() {
+	public static MainSceneController getMainController() {
 		return mainController;
 	}
 
@@ -65,11 +69,26 @@ public class SWTApplication extends Application {
 	public void start(Stage window) throws Exception {
 
 		try {
+			this.window = window;
 			loadScenes();
+			prepareWindow();
 		} catch (IOException e) {
 			System.err.println("Something went wrong while loading the Scenes: ");
 			e.printStackTrace();
 		}
+	}
+
+	private void prepareWindow() {
+		// set Stage boundaries to visible bounds of the main screen
+		Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
+		window.setX(primaryScreenBounds.getMinX());
+		window.setY(primaryScreenBounds.getMinY());
+		window.setWidth(primaryScreenBounds.getWidth());
+		window.setHeight(primaryScreenBounds.getHeight());
+		// disable exiting the fullscreen with ESCAPE, set it to shift + escape for the
+		// Main menu
+
+		window.setResizable(false);
 
 		window.setScene(mainScene);
 		window.show();

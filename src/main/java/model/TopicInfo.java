@@ -1,5 +1,6 @@
 package model;
 
+@Deprecated
 /**
  * --- Work in Progress! --- This class contains some more information about a
  * certain topic, that can be displayed in the UI.

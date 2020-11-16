@@ -1,6 +1,5 @@
 package ui.controller;
 
-import backend.exception.InvalidUriInputException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -8,8 +7,8 @@ import java.util.ResourceBundle;
 import org.apache.jena.query.QuerySolution;
 
 import application.SWTApplication;
-import backend.TopicManager;
 import backend.TopicManagerImpl;
+import backend.exception.InvalidUriInputException;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
@@ -28,7 +27,7 @@ public class MainSceneController implements Initializable {
 	private static final int NUM_OF_SUGGESTIONS = 15; // TODO let the user change this
 
 	@FXML
-	private AnchorPane proposedTopicBase;
+	private AnchorPane proposedTopicBase, acceptedTopicBase;
 	@FXML
 	private Button btn1;
 	@FXML
@@ -37,17 +36,20 @@ public class MainSceneController implements Initializable {
 	private TextFlow textArea1;
 
 	private ProposedTopicList proposedTopicList;
+	private AcceptedTopicList acceptedTopicList;
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		// TODO Auto-generated method stub
 		SWTApplication.setTopicManager(new TopicManagerImpl());
+		this.acceptedTopicList = new AcceptedTopicList();
 		this.proposedTopicList = new ProposedTopicList();
 		this.proposedTopicBase.getChildren().add(proposedTopicList.getRoot());
-		
+		this.acceptedTopicBase.getChildren().add(acceptedTopicList.getRoot());
+
 		// run search on enter
 		this.text1.setOnKeyPressed(e -> {
-			if(e.getCode().equals(KeyCode.ENTER)) {
+			if (e.getCode().equals(KeyCode.ENTER)) {
 				onClick();
 			}
 		});
@@ -57,6 +59,16 @@ public class MainSceneController implements Initializable {
 		String text = text1.getText();
 		setResult(text);
 		return text;
+	}
+
+	/**
+	 * Add a new topic to the list of accepted topics.
+	 * 
+	 * @param resourceUrl Url of the topic resource.
+	 * @param label       The label of the topic.
+	 */
+	public void addTopicToAcceptedTopics(String resourceUrl, String label) {
+		this.acceptedTopicList.addTopic(resourceUrl, label);
 	}
 
 	public void setResult(String s) {
@@ -69,10 +81,9 @@ public class MainSceneController implements Initializable {
 		}
 		// vorher
 		List<QuerySolution> result = SWTApplication.getTopicManager().getSuggestionsForCurrentTopic(NUM_OF_SUGGESTIONS);
-		
+
 		proposedTopicList.clearAndPopulateList(result);
-		
-		
+
 		int count = 0;
 //		StringBuffer sb = new StringBuffer();
 //		for (QuerySolution qs : result) {
