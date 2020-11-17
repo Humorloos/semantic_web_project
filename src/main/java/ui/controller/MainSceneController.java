@@ -12,6 +12,7 @@ import backend.exception.InvalidUriInputException;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -78,7 +79,8 @@ public class MainSceneController implements Initializable {
 		try {
 			SWTApplication.getTopicManager().addResourceToTopics(TopicManagerImpl.RESOURCE_URI + s);
 		} catch (InvalidUriInputException e) {
-			e.printStackTrace();
+			Alert a = new Alert(Alert.AlertType.ERROR,"Invalid Input");
+			a.showAndWait();
 		}
 		// vorher
 		List<QuerySolution> result = SWTApplication.getTopicManager().getSuggestionsForCurrentTopic(NUM_OF_SUGGESTIONS);
