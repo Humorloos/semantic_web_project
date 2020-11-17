@@ -51,34 +51,24 @@ public class TopicManagerImpl implements TopicManager {
    */
   @Override
   public void addResourceToTopics(final String resourceUrl) throws InvalidUriInputException {
-    final Query describeQuery = QueryFactory.create(SPARQL_PREFIXES + "DESCRIBE <" + resourceUrl + ">");
-    final QueryExecution describeExecution = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT,
-        describeQuery);
-    final Model description = describeExecution.execDescribe();
-    if (description.isEmpty()) {
-      throw new InvalidUriInputException(resourceUrl);
-    }
     final Query constructQuery = QueryFactory.create(SPARQL_PREFIXES
-        + "CONSTRUCT { ?s ?p ?o } "
-        + "WHERE { ?s ?p ?o "
-        + "FILTER ("
-        // Include all triples, where:
-        // * subject or object is the new resource
-        // * the resource that is not the new resource is from dbpedia
-        // * the predicate is not a meaningless property
-        + "  ?p != " + MEANINGLESS_PROPERTY
-        + "  && ("
-        + "    ("
-        + "      ?s=<" + resourceUrl + ">"
-        + "      && strstarts(str(?o), \"" + RESOURCE_URI + "\")"
-        + "    ) || ("
-        + "      ?o=<" + resourceUrl + ">"
-        + "      && strstarts(str(?s), \"" + RESOURCE_URI + "\")"
-        + "    )"
-        + "  )"
-        + ")}");
-    final QueryExecution constructExecution = QueryExecutionFactory.create(constructQuery, description);
-    memoryModel = constructExecution.execConstruct(memoryModel);
+            + "CONSTRUCT { <" + resourceUrl + "> ?p ?o."
+            		+ "?s ?p <" + resourceUrl + "> } "
+            + "WHERE { <" + resourceUrl + "> ?p ?o. "
+            		+ "?s ?p <" + resourceUrl + ">"
+            + "FILTER ("
+            + "  ?p != " + MEANINGLESS_PROPERTY
+            + "  && ("
+            + "    ("
+            + "      strstarts(str(?o), \"" + RESOURCE_URI + "\")"
+            + "    ) || ("
+            + "      strstarts(str(?s), \"" + RESOURCE_URI + "\")"
+            + "    )"
+            + "  )"
+            + ")}"
+            );
+    final QueryExecution constructExecution = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT, constructQuery);
+    memoryModel.add(constructExecution.execConstruct(memoryModel));
     previousResources.add(resourceUrl);
     currentTopic = resourceUrl;
   }
