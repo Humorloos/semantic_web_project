@@ -1,8 +1,8 @@
 package ui.controller;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -18,7 +18,7 @@ public class AcceptedTopicList {
 
 	private AnchorPane root;
 
-	private List<AcceptedTopicListEntry> topics;
+	private Map<String, AcceptedTopicListEntry> topics;
 
 	@FXML
 	private VBox topicList;
@@ -34,7 +34,7 @@ public class AcceptedTopicList {
 		FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource("fxml/accepted_topic_list.fxml"));
 		loader.setController(this);
 
-		topics = new ArrayList<AcceptedTopicListEntry>();
+		topics = new HashMap<String, AcceptedTopicListEntry>();
 
 		try {
 			this.root = loader.load();
@@ -54,18 +54,18 @@ public class AcceptedTopicList {
 	 */
 	protected void addTopic(TopicInfo topic) {
 		AcceptedTopicListEntry entry = new AcceptedTopicListEntry(topic);
-		topics.add(entry);
+		topics.put(topic.getResourceUrl(), entry);
 		topicList.getChildren().add(entry.getRoot());
 	}
 
 	/**
 	 * Removes a given topic from the list of proposals.
 	 * 
-	 * @param topicEntry The {@link AcceptedTopicListEntry} to remove.
+	 * @param resourceUrl The url of the resource, whose entry is to be removed.
 	 */
-	protected void removeTopicEntry(AcceptedTopicListEntry topicEntry) {
-		topics.remove(topicEntry);
-		topicList.getChildren().remove(topicEntry.getRoot());
+	protected void removeTopicEntry(String resourceUrl) {
+		AcceptedTopicListEntry entry = topics.remove(resourceUrl);
+		topicList.getChildren().remove(entry.getRoot());
 	}
 
 }

@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import application.SWTApplication;
+import backend.TopicManagerImpl;
 import backend.exception.InvalidUriInputException;
 import javafx.event.ActionEvent;
 
@@ -67,6 +68,7 @@ public class ProposedTopicListEntry {
 		btn1.setOnAction(e -> {
 			try {
 				SWTApplication.getTopicManager().addResourceToTopics(topicInfo.getResourceUrl());
+				SWTApplication.getMainController().addTopicToAcceptedTopics(topicInfo);
 				SWTApplication.getTopicManager().getSuggestionsForCurrentTopic(SWTApplication.getNumberOfSuggestions());
 			} catch (InvalidUriInputException e1) {
 				// TODO add Alert?
@@ -75,12 +77,6 @@ public class ProposedTopicListEntry {
 		});
 		
 		
-	    resourceLabel.setOnMouseClicked((mouseEvent) -> {
-            System.out.println("label clicked");
- 
-		});
-	   
-	  
         hyper1.setOnAction((ActionEvent e) -> {
         	try {
 				Desktop.getDesktop().browse(new URI(info.getWikiUri()));

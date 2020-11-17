@@ -1,7 +1,7 @@
 package ui.controller;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.jena.query.QuerySolution;
@@ -20,7 +20,7 @@ public class ProposedTopicList {
 
 	private AnchorPane root;
 
-	private List<ProposedTopicListEntry> topics;
+	private HashMap<String, ProposedTopicListEntry> topics;
 
 	@FXML
 	private VBox topicList;
@@ -36,7 +36,7 @@ public class ProposedTopicList {
 		FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource("fxml/proposed_topic_list.fxml"));
 		loader.setController(this);
 
-		topics = new ArrayList<ProposedTopicListEntry>();
+		topics = new HashMap<String, ProposedTopicListEntry>();
 
 		try {
 			this.root = loader.load();
@@ -62,21 +62,23 @@ public class ProposedTopicList {
 		for (QuerySolution resource : proposals) {
 			// TODO currently generates a 'label' from the URL -> use actual label
 			String url = resource.get("uri").toString();
-			ProposedTopicListEntry entry = new ProposedTopicListEntry(new TopicInfo(url, resource.get("label").toString(), ""));
-			topics.add(entry);
+
+			ProposedTopicListEntry entry = new ProposedTopicListEntry(
+					new TopicInfo(url, resource.get("label").toString(), ""));
+			topics.put(url, entry);
 			topicList.getChildren().add(entry.getRoot());
 		}
-		
+
 	}
 
 	/**
 	 * Removes a given topic from the list of proposals.
 	 * 
-	 * @param topicEntry The {@link ProposedTopicListEntry} to remove.
+	 * @param resourceUrl The url of the resource, whose entry is to be removed.
 	 */
-	protected void removeTopic(ProposedTopicListEntry topicEntry) {
-		topics.remove(topicEntry);
-		topicList.getChildren().remove(topicEntry.getRoot());
+	protected void removeTopic(String resourceUrl) {
+		ProposedTopicListEntry entry = topics.remove(resourceUrl);
+		topicList.getChildren().remove(entry.getRoot());
 	}
 
 }
