@@ -1,14 +1,14 @@
 package ui.controller;
 
-import backend.exception.InvalidUriInputException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
 import org.apache.jena.query.QuerySolution;
 
-import backend.TopicManager;
+import application.SWTApplication;
 import backend.TopicManagerImpl;
+import backend.exception.InvalidUriInputException;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
@@ -17,6 +17,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.TextFlow;
+import model.TopicInfo;
 
 /**
  * Controller class of the main {@link Scene} of the app. Handles every
@@ -24,10 +25,10 @@ import javafx.scene.text.TextFlow;
  */
 public class MainSceneController implements Initializable {
 
-	private static final int NUM_OF_SUGGESTIONS = 15; // TODO let the user change this
+	public static final int NUM_OF_SUGGESTIONS = 15; // TODO let the user change this
 
 	@FXML
-	private AnchorPane proposedTopicBase;
+	private AnchorPane proposedTopicBase, acceptedTopicBase;
 	@FXML
 	private Button btn1;
 	@FXML
@@ -35,19 +36,21 @@ public class MainSceneController implements Initializable {
 	@FXML
 	private TextFlow textArea1;
 
-	private TopicManager topicManager;
 	private ProposedTopicList proposedTopicList;
+	private AcceptedTopicList acceptedTopicList;
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		// TODO Auto-generated method stub
-		this.topicManager = new TopicManagerImpl();
+		SWTApplication.setTopicManager(new TopicManagerImpl());
+		this.acceptedTopicList = new AcceptedTopicList();
 		this.proposedTopicList = new ProposedTopicList();
 		this.proposedTopicBase.getChildren().add(proposedTopicList.getRoot());
-		
+		this.acceptedTopicBase.getChildren().add(acceptedTopicList.getRoot());
+
 		// run search on enter
 		this.text1.setOnKeyPressed(e -> {
-			if(e.getCode().equals(KeyCode.ENTER)) {
+			if (e.getCode().equals(KeyCode.ENTER)) {
 				onClick();
 			}
 		});
@@ -59,20 +62,29 @@ public class MainSceneController implements Initializable {
 		return text;
 	}
 
+	/**
+	 * Add a new topic to the list of accepted topics.
+	 * 
+	 * @param topic The {@link TopicInfo} for the topic to add.
+	 */
+	public void addTopicToAcceptedTopics(TopicInfo topic) {
+		this.proposedTopicList.removeTopic(topic.getResourceUrl());
+		this.acceptedTopicList.addTopic(topic);
+	}
+
 	public void setResult(String s) {
 		// textArea1.setText(s);
 		// register the new Resource
 		try {
-			topicManager.addResourceToTopics(TopicManagerImpl.RESOURCE_URI + s);
+			SWTApplication.getTopicManager().addResourceToTopics(TopicManagerImpl.RESOURCE_URI + s);
 		} catch (InvalidUriInputException e) {
 			e.printStackTrace();
 		}
 		// vorher
-		List<QuerySolution> result = topicManager.getSuggestionsForCurrentTopic(NUM_OF_SUGGESTIONS);
-		
+		List<QuerySolution> result = SWTApplication.getTopicManager().getSuggestionsForCurrentTopic(NUM_OF_SUGGESTIONS);
+
 		proposedTopicList.clearAndPopulateList(result);
-		
-		
+
 		int count = 0;
 //		StringBuffer sb = new StringBuffer();
 //		for (QuerySolution qs : result) {

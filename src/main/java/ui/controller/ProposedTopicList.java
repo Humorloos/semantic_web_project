@@ -1,7 +1,7 @@
 package ui.controller;
 
-
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.jena.query.QuerySolution;
@@ -10,6 +10,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import model.TopicInfo;
 
 /**
  * Controller class for the List of Proposed Topics. Can be instantiated by
@@ -18,6 +19,8 @@ import javafx.scene.layout.VBox;
 public class ProposedTopicList {
 
 	private AnchorPane root;
+
+	private HashMap<String, ProposedTopicListEntry> topics;
 
 	@FXML
 	private VBox topicList;
@@ -32,6 +35,8 @@ public class ProposedTopicList {
 	public ProposedTopicList() {
 		FXMLLoader loader = new FXMLLoader(getClass().getClassLoader().getResource("fxml/proposed_topic_list.fxml"));
 		loader.setController(this);
+
+		topics = new HashMap<String, ProposedTopicListEntry>();
 
 		try {
 			this.root = loader.load();
@@ -52,17 +57,28 @@ public class ProposedTopicList {
 	 *                  information about each proposed topic.
 	 */
 	protected void clearAndPopulateList(List<QuerySolution> proposals) {
-		topicList.getChildren().clear();	
+		topicList.getChildren().clear();
 
 		for (QuerySolution resource : proposals) {
 			// TODO currently generates a 'label' from the URL -> use actual label
 			String url = resource.get("uri").toString();
-			ProposedTopicListEntry entry = new ProposedTopicListEntry(url,
-					url.split("/")[url.split("/").length - 1], "https://wikipedia.de");
+
+			ProposedTopicListEntry entry = new ProposedTopicListEntry(
+					new TopicInfo(url, resource.get("label").toString(), ""));
+			topics.put(url, entry);
 			topicList.getChildren().add(entry.getRoot());
 		}
-		
+
 	}
 
-	
+	/**
+	 * Removes a given topic from the list of proposals.
+	 * 
+	 * @param resourceUrl The url of the resource, whose entry is to be removed.
+	 */
+	protected void removeTopic(String resourceUrl) {
+		ProposedTopicListEntry entry = topics.remove(resourceUrl);
+		topicList.getChildren().remove(entry.getRoot());
+	}
+
 }
