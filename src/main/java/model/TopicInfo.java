@@ -22,7 +22,7 @@ public class TopicInfo {
 		this.topicLabel = label.split("@")[0];
 //		this.propertyLabel = propertyLabel;
 		this.typeLabel = typeLabel;
-		this.wikiUri = "https://wikipedia.com"; // TODO: construct from resourceUrl and wikipedia-url
+		this.wikiUri = "https://en.wikipedia.org/wiki/"+resourceUrl.replaceAll("http://dbpedia.org/resource/", ""); // TODO: construct from resourceUrl and wikipedia-url
 	}
 
 	public String getResourceUrl() {
