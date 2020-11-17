@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
+import model.TopicInfo;
 
 /**
  * Controller class for an entry in the list of proposed topics. Contains
@@ -20,7 +21,7 @@ public class AcceptedTopicListEntry {
 	@FXML
 	private Label resourceLabel;
 
-	private String label, url;
+	private TopicInfo topic;
 
 	/**
 	 * Constructor of the controller.
@@ -31,12 +32,8 @@ public class AcceptedTopicListEntry {
 	 * @param wikiUrl     Url to the Wikipedia article of the given resource as
 	 *                    string.
 	 */
-	public AcceptedTopicListEntry(String resourceUrl, String label) {
-		/*
-		 * Store attributes in the controller for later use. 
-		 */
-		this.label = label;
-		this.url = resourceUrl;
+	public AcceptedTopicListEntry(TopicInfo topic) {
+		this.topic = topic;
 
 		// load the fxml file for the entry
 		FXMLLoader loader = new FXMLLoader(
@@ -48,7 +45,7 @@ public class AcceptedTopicListEntry {
 			e.printStackTrace();
 		}
 
-		resourceLabel.setText(label);	
+		resourceLabel.setText(topic.getLabel());	
 	}
 
 	public Parent getRoot() {

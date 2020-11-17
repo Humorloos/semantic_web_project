@@ -17,6 +17,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.TextFlow;
+import model.TopicInfo;
 
 /**
  * Controller class of the main {@link Scene} of the app. Handles every
@@ -24,7 +25,7 @@ import javafx.scene.text.TextFlow;
  */
 public class MainSceneController implements Initializable {
 
-	private static final int NUM_OF_SUGGESTIONS = 15; // TODO let the user change this
+	public static final int NUM_OF_SUGGESTIONS = 15; // TODO let the user change this
 
 	@FXML
 	private AnchorPane proposedTopicBase, acceptedTopicBase;
@@ -64,11 +65,10 @@ public class MainSceneController implements Initializable {
 	/**
 	 * Add a new topic to the list of accepted topics.
 	 * 
-	 * @param resourceUrl Url of the topic resource.
-	 * @param label       The label of the topic.
+	 * @param topic The {@link TopicInfo} for the topic to add.
 	 */
-	public void addTopicToAcceptedTopics(String resourceUrl, String label) {
-		this.acceptedTopicList.addTopic(resourceUrl, label);
+	public void addTopicToAcceptedTopics(TopicInfo topic) {
+		this.acceptedTopicList.addTopic(topic);
 	}
 
 	public void setResult(String s) {

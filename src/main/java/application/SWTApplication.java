@@ -22,6 +22,10 @@ public class SWTApplication extends Application {
 	public static TopicManager getTopicManager() {
 		return topicManager;
 	}
+	
+	public static int getNumberOfSuggestions() {
+		return MainSceneController.NUM_OF_SUGGESTIONS;
+	}
 
 	/**
 	 * Starts the {@link Application}.

@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import model.TopicInfo;
 
 /**
  * Controller class for the List of Proposed Topics. Can be instantiated by
@@ -49,11 +50,10 @@ public class AcceptedTopicList {
 	/**
 	 * Add a new accepted topic to the list.
 	 * 
-	 * @param resourceUrl The url of the resource to add.
-	 * @param label       String labeling the topic.
+	 * @param topic The {@link TopicInfo} for the topic to add.
 	 */
-	protected void addTopic(String resourceUrl, String label) {
-		AcceptedTopicListEntry entry = new AcceptedTopicListEntry(resourceUrl, label);
+	protected void addTopic(TopicInfo topic) {
+		AcceptedTopicListEntry entry = new AcceptedTopicListEntry(topic);
 		topics.add(entry);
 		topicList.getChildren().add(entry.getRoot());
 	}
@@ -63,7 +63,7 @@ public class AcceptedTopicList {
 	 * 
 	 * @param topicEntry The {@link AcceptedTopicListEntry} to remove.
 	 */
-	protected void removeTopic(AcceptedTopicListEntry topicEntry) {
+	protected void removeTopicEntry(AcceptedTopicListEntry topicEntry) {
 		topics.remove(topicEntry);
 		topicList.getChildren().remove(topicEntry.getRoot());
 	}

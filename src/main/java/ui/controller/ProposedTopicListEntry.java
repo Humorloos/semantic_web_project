@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import application.SWTApplication;
+import backend.exception.InvalidUriInputException;
 import javafx.event.ActionEvent;
 
 import javafx.fxml.FXML;
@@ -14,6 +16,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import model.TopicInfo;
 
 /**
  * Controller class for an entry in the list of proposed topics. Contains
@@ -31,7 +34,7 @@ public class ProposedTopicListEntry {
 	@FXML
 	private Button btn1;
 
-	private String label, url, wikiLink;
+	private TopicInfo topicInfo;
 
 	/**
 	 * Constructor of the controller.
@@ -42,15 +45,11 @@ public class ProposedTopicListEntry {
 	 * @param wikiUrl     Url to the Wikipedia article of the given resource as
 	 *                    string.
 	 */
-	public ProposedTopicListEntry(String resourceUrl, String label, String wikiUrl) {
+	public ProposedTopicListEntry(TopicInfo info) {
 		/*
 		 * Store attributes in the controller for later use. 
-		 * TODO @Yawen you can use these for the implementation of
-		 * https://github.com/Humorloos/semantic_web_project/issues/23
 		 */
-		this.label = label;
-		this.url = resourceUrl;
-		this.wikiLink = wikiUrl;
+		this.topicInfo = info;
 
 		// load the fxml file for the entry
 		FXMLLoader loader = new FXMLLoader(
@@ -62,11 +61,18 @@ public class ProposedTopicListEntry {
 			e.printStackTrace();
 		}
 
-		resourceLabel.setText(label);	
-		//hyper1.setVisible(false);
-		//btn1.setVisible(false);
-		hyper1.setText(this.wikiLink);
+		resourceLabel.setText(topicInfo.getLabel());	
+		hyper1.setText(info.getWikiUri());
 		btn1.setText("add to my topics ");
+		btn1.setOnAction(e -> {
+			try {
+				SWTApplication.getTopicManager().addResourceToTopics(topicInfo.getResourceUrl());
+				SWTApplication.getTopicManager().getSuggestionsForCurrentTopic(SWTApplication.getNumberOfSuggestions());
+			} catch (InvalidUriInputException e1) {
+				// TODO add Alert?
+				e1.printStackTrace();
+			}
+		});
 		
 		
 	    resourceLabel.setOnMouseClicked((mouseEvent) -> {
@@ -77,7 +83,7 @@ public class ProposedTopicListEntry {
 	  
         hyper1.setOnAction((ActionEvent e) -> {
         	try {
-				Desktop.getDesktop().browse(new URI(wikiUrl));
+				Desktop.getDesktop().browse(new URI(info.getWikiUri()));
 			} catch (IOException | URISyntaxException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();

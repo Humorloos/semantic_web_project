@@ -10,6 +10,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import model.TopicInfo;
 
 /**
  * Controller class for the List of Proposed Topics. Can be instantiated by
@@ -61,8 +62,7 @@ public class ProposedTopicList {
 		for (QuerySolution resource : proposals) {
 			// TODO currently generates a 'label' from the URL -> use actual label
 			String url = resource.get("uri").toString();
-			ProposedTopicListEntry entry = new ProposedTopicListEntry(url, resource.get("label").toString().split("@")[0],
-					"https://wikipedia.de");
+			ProposedTopicListEntry entry = new ProposedTopicListEntry(new TopicInfo(url, resource.get("label").toString(), ""));
 			topics.add(entry);
 			topicList.getChildren().add(entry.getRoot());
 		}
