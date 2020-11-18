@@ -52,23 +52,27 @@ public class TopicManagerImpl implements TopicManager {
   @Override
   public void addResourceToTopics(final String resourceUrl) throws InvalidUriInputException {
     final Query constructQuery = QueryFactory.create(SPARQL_PREFIXES
-            + "CONSTRUCT { <" + resourceUrl + "> ?p ?o."
-            		+ "?s ?p <" + resourceUrl + "> } "
-            + "WHERE { <" + resourceUrl + "> ?p ?o. "
-            		+ "?s ?p <" + resourceUrl + ">"
+            + "CONSTRUCT { <" + resourceUrl + "> ?p1 ?o."
+            		+ "?s ?p2 <" + resourceUrl + "> } "
+            + "WHERE { <" + resourceUrl + "> ?p1 ?o. "
+            		+ "?s ?p2 <" + resourceUrl + ">"
             + "FILTER ("
-            + "  ?p != " + MEANINGLESS_PROPERTY
-            + "  && ("
-            + "    ("
+            + "  ?p1 != " + MEANINGLESS_PROPERTY 
+            + "  && ?p2 != " + MEANINGLESS_PROPERTY
+            + "  && "
             + "      strstarts(str(?o), \"" + RESOURCE_URI + "\")"
-            + "    ) || ("
+            + "    &&"
             + "      strstarts(str(?s), \"" + RESOURCE_URI + "\")"
-            + "    )"
-            + "  )"
             + ")}"
             );
+//    System.out.println(constructQuery.toString());
     final QueryExecution constructExecution = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT, constructQuery);
-    memoryModel.add(constructExecution.execConstruct(memoryModel));
+    final Model newModel = constructExecution.execConstruct(memoryModel);
+    if (newModel.isEmpty()) {
+      throw new InvalidUriInputException(resourceUrl);
+    }
+//    memoryModel.write(System.out, "TURTLE") ;
+    memoryModel = newModel;
     previousResources.add(resourceUrl);
     currentTopic = resourceUrl;
   }
@@ -107,7 +111,7 @@ public class TopicManagerImpl implements TopicManager {
         // stop queries if the result is empty
         if(!orderedResources.hasNext()) break; 
         // Get highest ranking numberOfProposals resources that are connected to the current resource
-        while(orderedResources.hasNext() && resourcesFound <= numOfSuggestions) {
+        while(orderedResources.hasNext() && resourcesFound < numOfSuggestions) {
         	final QuerySolution nextProposal = orderedResources.next();
         	final Set<String> old_words = Sets.newHashSet(nextProposal.get("?old_words").toString().split(" "));
         	if (old_words.contains(currentTopic)) {

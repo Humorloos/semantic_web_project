@@ -30,9 +30,9 @@ class TopicManagerImplIT {
             List.of("uri", "sample_property", "label").stream().map((Function<String, Object>) resultBinding::contains))
             .as("each result set must contain the variables 'new_word' and 'sample_property'")
             .containsOnly(true))
-        .as("some proposal must have label '2014-15 DEL season' and corresponding URI")
+        .as("some proposal must have label '2010_IIHF_World_Championship' and corresponding URI")
         .anySatisfy(resultBinding -> {
-          final String proposal = "2014–15_DEL_season";
+          final String proposal = "2010_IIHF_World_Championship";
           assertThat(resultBinding.get("uri").toString().contains(proposal))
               .isTrue();
           assertThat(resultBinding.get("label").asLiteral().getString()).isEqualTo(proposal.replace("_", " "));
