@@ -51,28 +51,32 @@ public class TopicManagerImpl implements TopicManager {
    */
   @Override
   public void addResourceToTopics(final String resourceUrl) throws InvalidUriInputException {
-    final Query constructQuery = QueryFactory.create(SPARQL_PREFIXES
-            + "CONSTRUCT { <" + resourceUrl + "> ?p1 ?o."
-            		+ "?s ?p2 <" + resourceUrl + "> } "
-            + "WHERE { <" + resourceUrl + "> ?p1 ?o. "
-            		+ "?s ?p2 <" + resourceUrl + ">"
+    final Query constructSubjectQuery = QueryFactory.create(SPARQL_PREFIXES
+            + "CONSTRUCT { <" + resourceUrl + "> ?p ?o }"
+            + "WHERE { <" + resourceUrl + "> ?p ?o "
             + "FILTER ("
-            + "  ?p1 != " + MEANINGLESS_PROPERTY 
-            + "  && ?p2 != " + MEANINGLESS_PROPERTY
+            + "  ?p != " + MEANINGLESS_PROPERTY 
             + "  && "
             + "      strstarts(str(?o), \"" + RESOURCE_URI + "\")"
+            + ")}"
+            );
+    final Query constructObjectQuery = QueryFactory.create(SPARQL_PREFIXES
+            + "CONSTRUCT { ?s ?p <" + resourceUrl + "> } "
+            + "WHERE { ?s ?p <" + resourceUrl + ">"
+            + "FILTER ("
+            + "  ?p != " + MEANINGLESS_PROPERTY 
             + "    &&"
             + "      strstarts(str(?s), \"" + RESOURCE_URI + "\")"
             + ")}"
             );
-//    System.out.println(constructQuery.toString());
-    final QueryExecution constructExecution = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT, constructQuery);
-    final Model newModel = constructExecution.execConstruct(memoryModel);
+    final QueryExecution constructSubjectExecution = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT, constructSubjectQuery);
+    final QueryExecution constructObjectExecution = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT, constructObjectQuery);
+    Model newModel = constructSubjectExecution.execConstruct();
+    newModel = newModel.add(constructObjectExecution.execConstruct(newModel));
     if (newModel.isEmpty()) {
       throw new InvalidUriInputException(resourceUrl);
     }
-//    memoryModel.write(System.out, "TURTLE") ;
-    memoryModel = newModel;
+    memoryModel = memoryModel.add(newModel);
     previousResources.add(resourceUrl);
     currentTopic = resourceUrl;
   }
