@@ -51,34 +51,32 @@ public class TopicManagerImpl implements TopicManager {
    */
   @Override
   public void addResourceToTopics(final String resourceUrl) throws InvalidUriInputException {
-    final Query describeQuery = QueryFactory.create(SPARQL_PREFIXES + "DESCRIBE <" + resourceUrl + ">");
-    final QueryExecution describeExecution = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT,
-        describeQuery);
-    final Model description = describeExecution.execDescribe();
-    if (description.isEmpty()) {
+    final Query constructSubjectQuery = QueryFactory.create(SPARQL_PREFIXES
+            + "CONSTRUCT { <" + resourceUrl + "> ?p ?o }"
+            + "WHERE { <" + resourceUrl + "> ?p ?o "
+            + "FILTER ("
+            + "  ?p != " + MEANINGLESS_PROPERTY 
+            + "  && "
+            + "      strstarts(str(?o), \"" + RESOURCE_URI + "\")"
+            + ")}"
+            );
+    final Query constructObjectQuery = QueryFactory.create(SPARQL_PREFIXES
+            + "CONSTRUCT { ?s ?p <" + resourceUrl + "> } "
+            + "WHERE { ?s ?p <" + resourceUrl + ">"
+            + "FILTER ("
+            + "  ?p != " + MEANINGLESS_PROPERTY 
+            + "    &&"
+            + "      strstarts(str(?s), \"" + RESOURCE_URI + "\")"
+            + ")}"
+            );
+    final QueryExecution constructSubjectExecution = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT, constructSubjectQuery);
+    final QueryExecution constructObjectExecution = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT, constructObjectQuery);
+    Model newModel = constructSubjectExecution.execConstruct();
+    newModel = newModel.add(constructObjectExecution.execConstruct(newModel));
+    if (newModel.isEmpty()) {
       throw new InvalidUriInputException(resourceUrl);
     }
-    final Query constructQuery = QueryFactory.create(SPARQL_PREFIXES
-        + "CONSTRUCT { ?s ?p ?o } "
-        + "WHERE { ?s ?p ?o "
-        + "FILTER ("
-        // Include all triples, where:
-        // * subject or object is the new resource
-        // * the resource that is not the new resource is from dbpedia
-        // * the predicate is not a meaningless property
-        + "  ?p != " + MEANINGLESS_PROPERTY
-        + "  && ("
-        + "    ("
-        + "      ?s=<" + resourceUrl + ">"
-        + "      && strstarts(str(?o), \"" + RESOURCE_URI + "\")"
-        + "    ) || ("
-        + "      ?o=<" + resourceUrl + ">"
-        + "      && strstarts(str(?s), \"" + RESOURCE_URI + "\")"
-        + "    )"
-        + "  )"
-        + ")}");
-    final QueryExecution constructExecution = QueryExecutionFactory.create(constructQuery, description);
-    memoryModel = constructExecution.execConstruct(memoryModel);
+    memoryModel = memoryModel.add(newModel);
     previousResources.add(resourceUrl);
     currentTopic = resourceUrl;
   }
@@ -97,23 +95,36 @@ public class TopicManagerImpl implements TopicManager {
   public List<QuerySolution> getSuggestionsForCurrentTopic(final int numOfSuggestions) {
     final String previousResourceFilter =
         "FILTER(?new_word NOT IN (<" + String.join(">, <", previousResources) + ">))";
-    // order resources in memoryModel by number of connections to previous resources
-    final ResultSet orderedResources = getSelectQueryResultSet(SPARQL_PREFIXES +
-        "SELECT ?new_word (GROUP_CONCAT(DISTINCT ?old_word) AS ?old_words) "
-        + "WHERE { { ?old_word ?p ?new_word " + previousResourceFilter + "} "
-        + "UNION {?new_word ?p ?old_word " + previousResourceFilter + "}} "
-        + "GROUP BY ?new_word "
-        + "ORDER BY DESC(COUNT(DISTINCT ?old_word))");
-    // Get highest ranking numberOfProposals resources that are connected to the current resource
+    
+    // parameters for paging
+    final int pageSize = 50;
+    int queryCount = 0, resourcesFound = 0;
     final Set<String> proposals = new HashSet<>();
-    for (int i = 0; i < numOfSuggestions; ) {
-      final QuerySolution nextProposal = orderedResources.next();
-      final Set<String> old_words = Sets.newHashSet(nextProposal.get("?old_words").toString().split(" "));
-      if (old_words.contains(currentTopic)) {
-        proposals.add(orderedResources.next().get("?new_word").toString());
-        i++;
-      }
-    }
+    // loop for paging: run the query with 'pageSize' results until enough resources are found
+    while (resourcesFound < numOfSuggestions) {
+    	// order resources in memoryModel by number of connections to previous resources
+        String query = SPARQL_PREFIXES +
+                "SELECT ?new_word (GROUP_CONCAT(DISTINCT ?old_word) AS ?old_words) "
+                + "WHERE { { ?old_word ?p ?new_word " + previousResourceFilter + "} "
+                + "UNION {?new_word ?p ?old_word " + previousResourceFilter + "}} "
+                + "GROUP BY ?new_word "
+                + "ORDER BY DESC(COUNT(DISTINCT ?old_word))"
+                + "LIMIT " + pageSize + " OFFSET " + queryCount*pageSize;
+        final ResultSet orderedResources = getSelectQueryResultSet(query);
+        queryCount++;
+        // stop queries if the result is empty
+        if(!orderedResources.hasNext()) break; 
+        // Get highest ranking numberOfProposals resources that are connected to the current resource
+        while(orderedResources.hasNext() && resourcesFound < numOfSuggestions) {
+        	final QuerySolution nextProposal = orderedResources.next();
+        	final Set<String> old_words = Sets.newHashSet(nextProposal.get("?old_words").toString().split(" "));
+        	if (old_words.contains(currentTopic)) {
+        		resourcesFound++;
+        		proposals.add(nextProposal.get("?new_word").toString());
+        	}
+        }
+	}
+    
     // Add labels of proposals to memoryModel
     final Query constructQuery = QueryFactory.create(SPARQL_PREFIXES
         + "CONSTRUCT { ?s ?p ?o } "
