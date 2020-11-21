@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
@@ -12,8 +16,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-
-<AnchorPane styleClass="root" stylesheets="@../css/general.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.controller.MainSceneController">
+<AnchorPane styleClass="root" stylesheets="@../css/general.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.controller.MainSceneController">
    <children>
       <GridPane hgap="32.0" layoutX="16.0" layoutY="16.0" AnchorPane.bottomAnchor="64.0" AnchorPane.leftAnchor="64.0" AnchorPane.rightAnchor="64.0" AnchorPane.topAnchor="64.0">
          <columnConstraints>
@@ -48,6 +51,7 @@
                         <Label styleClass="title" text="Interesting Topics For You" />
                         <HBox alignment="CENTER" spacing="20.0">
                            <children>
+                              <TextField fx:id="numberArea" promptText="Number" />
                               <TextField fx:id="text1" prefWidth="250.0" promptText="Give Resource here" />
                               <Button fx:id="btn1" mnemonicParsing="false" onAction="#onClick" prefWidth="80.0" text="Search" />
                            </children>

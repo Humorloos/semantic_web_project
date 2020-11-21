@@ -14,6 +14,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
@@ -26,7 +27,7 @@ import model.TopicInfo;
  */
 public class MainSceneController implements Initializable {
 
-	public static final int NUM_OF_SUGGESTIONS = 15; // TODO let the user change this
+	public static int NUM_OF_SUGGESTIONS = 15; // TODO let the user change this
 
 	@FXML
 	private AnchorPane proposedTopicBase, acceptedTopicBase;
@@ -36,6 +37,8 @@ public class MainSceneController implements Initializable {
 	private TextField text1;
 	@FXML
 	private TextFlow textArea1;
+	@FXML
+	private TextField numberArea;
 
 	private ProposedTopicList proposedTopicList;
 	private AcceptedTopicList acceptedTopicList;
@@ -72,6 +75,11 @@ public class MainSceneController implements Initializable {
 		this.proposedTopicList.removeTopic(topic.getResourceUrl());
 		this.acceptedTopicList.addTopic(topic);
 	}
+	
+	
+	public void removeTopicAcceptedTopics(TopicInfo topic) {
+		this.acceptedTopicList.removeTopicEntry(topic.getResourceUrl());
+	}
 
 	public void setResult(String s) {
 		// textArea1.setText(s);
@@ -80,6 +88,13 @@ public class MainSceneController implements Initializable {
 			SWTApplication.getTopicManager().addResourceToTopics(TopicManagerImpl.RESOURCE_URI + s);
 		} catch (InvalidUriInputException e) {
 			Alert a = new Alert(Alert.AlertType.ERROR,"Invalid Input");
+			a.showAndWait();
+		}
+		
+		try {
+			NUM_OF_SUGGESTIONS = Integer.parseInt(numberArea.getText());
+		} catch (NumberFormatException e) {
+			Alert a = new Alert(Alert.AlertType.ERROR, "Please give a number");
 			a.showAndWait();
 		}
 		// vorher
