@@ -49,7 +49,7 @@ class TopicManagerImplIT {
     // then
     assertThat(cut)
         .as("Memory model must be filled.")
-        .satisfies(x -> assertThat(x.memoryModel.size()).isEqualTo(598))
+        .satisfies(x -> assertThat(x.memoryModel.size()).isEqualTo(577))
         .as("New uri must be added to previous resources.")
         .satisfies(x -> assertThat(x.previousResources).contains(uri))
         .as("Current topic must be set to new uri.")

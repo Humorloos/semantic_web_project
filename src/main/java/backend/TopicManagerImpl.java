@@ -24,7 +24,8 @@ public class TopicManagerImpl implements TopicManager {
   private static final String DBPEDIA_SPARQL_ENDPOINT = "http://dbpedia.org/sparql";
   private static final String SPARQL_PREFIXES = "PREFIX dbr: <" + RESOURCE_URI + "> "
       + "PREFIX dbo: <" + ONTOLOGY_URI + "> "
-      + "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> ";
+      + "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> "
+      + "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>";
   private static final String MEANINGLESS_PROPERTY = "dbo:wikiPageWikiLink";
 
 
@@ -53,7 +54,8 @@ public class TopicManagerImpl implements TopicManager {
   public void addResourceToTopics(final String resourceUrl) throws InvalidUriInputException {
     final Query constructSubjectQuery = QueryFactory.create(SPARQL_PREFIXES
             + "CONSTRUCT { <" + resourceUrl + "> ?p ?o }"
-            + "WHERE { <" + resourceUrl + "> ?p ?o "
+            + "WHERE { <" + resourceUrl + "> ?p ?o . "
+            + "        ?o rdf:type ?type "
             + "FILTER ("
             + "  ?p != " + MEANINGLESS_PROPERTY 
             + "  && "
@@ -62,7 +64,8 @@ public class TopicManagerImpl implements TopicManager {
             );
     final Query constructObjectQuery = QueryFactory.create(SPARQL_PREFIXES
             + "CONSTRUCT { ?s ?p <" + resourceUrl + "> } "
-            + "WHERE { ?s ?p <" + resourceUrl + ">"
+            + "WHERE { ?s ?p <" + resourceUrl + "> . "
+            + "        ?s rdf:type ?type "
             + "FILTER ("
             + "  ?p != " + MEANINGLESS_PROPERTY 
             + "    &&"
