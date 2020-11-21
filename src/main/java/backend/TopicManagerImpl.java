@@ -26,8 +26,7 @@ public class TopicManagerImpl implements TopicManager {
       + "PREFIX dbo: <" + ONTOLOGY_URI + "> "
       + "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> "
       + "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>";
-  private static final String MEANINGLESS_PROPERTY = "dbo:wikiPageWikiLink";
-
+  private static final Set<String> MEANINGLESS_PROPERTIES = Set.of("dbo:wikiPageWikiLink", "rdf:type");
 
   /**
    * Model containing all valid triples belonging to previously seen resources.
@@ -53,27 +52,29 @@ public class TopicManagerImpl implements TopicManager {
   @Override
   public void addResourceToTopics(final String resourceUrl) throws InvalidUriInputException {
     final Query constructSubjectQuery = QueryFactory.create(SPARQL_PREFIXES
-            + "CONSTRUCT { <" + resourceUrl + "> ?p ?o }"
-            + "WHERE { <" + resourceUrl + "> ?p ?o . "
-            + "        ?o rdf:type ?type "
-            + "FILTER ("
-            + "  ?p != " + MEANINGLESS_PROPERTY 
-            + "  && "
-            + "      strstarts(str(?o), \"" + RESOURCE_URI + "\")"
-            + ")}"
-            );
+        + "CONSTRUCT { <" + resourceUrl + "> ?p ?o . ?o rdf:type ?type }"
+        + "WHERE { <" + resourceUrl + "> ?p ?o . "
+        + "        ?o rdf:type ?type "
+        + "FILTER ("
+        + "  ?p NOT IN (" + String.join(",", MEANINGLESS_PROPERTIES) + ")"
+        + "  && "
+        + "      strstarts(str(?o), \"" + RESOURCE_URI + "\")"
+        + ")}"
+    );
     final Query constructObjectQuery = QueryFactory.create(SPARQL_PREFIXES
-            + "CONSTRUCT { ?s ?p <" + resourceUrl + "> } "
-            + "WHERE { ?s ?p <" + resourceUrl + "> . "
-            + "        ?s rdf:type ?type "
-            + "FILTER ("
-            + "  ?p != " + MEANINGLESS_PROPERTY 
-            + "    &&"
-            + "      strstarts(str(?s), \"" + RESOURCE_URI + "\")"
-            + ")}"
-            );
-    final QueryExecution constructSubjectExecution = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT, constructSubjectQuery);
-    final QueryExecution constructObjectExecution = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT, constructObjectQuery);
+        + "CONSTRUCT { ?s ?p <" + resourceUrl + "> . ?s rdf:type ?type } "
+        + "WHERE { ?s ?p <" + resourceUrl + "> . "
+        + "        ?s rdf:type ?type "
+        + "FILTER ("
+        + "  ?p NOT IN (" + String.join(",", MEANINGLESS_PROPERTIES) + ")"
+        + "  &&"
+        + "    strstarts(str(?s), \"" + RESOURCE_URI + "\")"
+        + ")}"
+    );
+    final QueryExecution constructSubjectExecution = QueryExecutionFactory
+        .sparqlService(DBPEDIA_SPARQL_ENDPOINT, constructSubjectQuery);
+    final QueryExecution constructObjectExecution = QueryExecutionFactory
+        .sparqlService(DBPEDIA_SPARQL_ENDPOINT, constructObjectQuery);
     Model newModel = constructSubjectExecution.execConstruct();
     newModel = newModel.add(constructObjectExecution.execConstruct(newModel));
     if (newModel.isEmpty()) {
@@ -98,36 +99,47 @@ public class TopicManagerImpl implements TopicManager {
   public List<QuerySolution> getSuggestionsForCurrentTopic(final int numOfSuggestions) {
     final String previousResourceFilter =
         "FILTER(?new_word NOT IN (<" + String.join(">, <", previousResources) + ">))";
-    
+
     // parameters for paging
     final int pageSize = 50;
     int queryCount = 0, resourcesFound = 0;
     final Set<String> proposals = new HashSet<>();
+    final Set<String> presentTypes = new HashSet<>();
     // loop for paging: run the query with 'pageSize' results until enough resources are found
     while (resourcesFound < numOfSuggestions) {
-    	// order resources in memoryModel by number of connections to previous resources
-        String query = SPARQL_PREFIXES +
-                "SELECT ?new_word (GROUP_CONCAT(DISTINCT ?old_word) AS ?old_words) "
-                + "WHERE { { ?old_word ?p ?new_word " + previousResourceFilter + "} "
-                + "UNION {?new_word ?p ?old_word " + previousResourceFilter + "}} "
-                + "GROUP BY ?new_word "
-                + "ORDER BY DESC(COUNT(DISTINCT ?old_word))"
-                + "LIMIT " + pageSize + " OFFSET " + queryCount*pageSize;
-        final ResultSet orderedResources = getSelectQueryResultSet(query);
-        queryCount++;
-        // stop queries if the result is empty
-        if(!orderedResources.hasNext()) break; 
-        // Get highest ranking numberOfProposals resources that are connected to the current resource
-        while(orderedResources.hasNext() && resourcesFound < numOfSuggestions) {
-        	final QuerySolution nextProposal = orderedResources.next();
-        	final Set<String> old_words = Sets.newHashSet(nextProposal.get("?old_words").toString().split(" "));
-        	if (old_words.contains(currentTopic)) {
-        		resourcesFound++;
-        		proposals.add(nextProposal.get("?new_word").toString());
-        	}
+      // order resources in memoryModel by number of connections to previous resources
+      String query = SPARQL_PREFIXES +
+          "SELECT ?new_word (GROUP_CONCAT(DISTINCT ?old_word) AS ?old_words) "
+          + "(GROUP_CONCAT(DISTINCT ?type) AS ?types)"
+          + "WHERE { { ?old_word ?p ?new_word " + previousResourceFilter + "} "
+          + "UNION {?new_word ?p ?old_word " + previousResourceFilter + "} . "
+          + "?new_word rdf:type ?type "
+          + "FILTER (?p NOT IN (" + String.join(",", MEANINGLESS_PROPERTIES) + "))} "
+          + "GROUP BY ?new_word "
+          + "ORDER BY DESC(COUNT(DISTINCT ?old_word))"
+          + "LIMIT " + pageSize + " OFFSET " + queryCount * pageSize;
+      final ResultSet orderedResources = getSelectQueryResultSet(query);
+      queryCount++;
+      // stop queries if the result is empty
+      if (!orderedResources.hasNext()) {
+        break;
+      }
+      // Get highest ranking numberOfProposals resources that are connected to the current resource
+      while (orderedResources.hasNext() && resourcesFound < numOfSuggestions) {
+        final QuerySolution nextProposal = orderedResources.next();
+        final Set<String> old_words = Sets.newHashSet(nextProposal.get("?old_words").toString().split(" "));
+        if (old_words.contains(currentTopic)) {
+          final Set<String> proposalTypeSet = Sets.newHashSet(nextProposal.get("?types").toString().split(" "));
+          proposalTypeSet.removeAll(presentTypes);
+          if (proposalTypeSet.size() > 0) {
+            presentTypes.addAll(proposalTypeSet);
+            resourcesFound++;
+            proposals.add(nextProposal.get("?new_word").toString());
+          }
         }
-	}
-    
+      }
+    }
+
     // Add labels of proposals to memoryModel
     final Query constructQuery = QueryFactory.create(SPARQL_PREFIXES
         + "CONSTRUCT { ?s ?p ?o } "
@@ -147,7 +159,7 @@ public class TopicManagerImpl implements TopicManager {
         + "WHERE { { ?current_word ?property ?uri } "
         + "UNION {?uri ?property ?current_word} "
         + "?uri rdfs:label ?label "
-        + "FILTER(?property != " + MEANINGLESS_PROPERTY
+        + "FILTER(?property NOT IN (" + String.join(",", MEANINGLESS_PROPERTIES) + ")"
         + " && ?current_word = <" + currentTopic + ">"
         + " && ?uri IN (<" + String.join(">, <", proposals) + ">))} "
         + "GROUP BY ?uri ?label");
