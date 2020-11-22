@@ -1,11 +1,9 @@
 package backend;
 
-import backend.exception.InvalidUriInputException;
-import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import model.TopicInfo;
+
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -16,6 +14,11 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.core.ResultBinding;
+
+import com.google.common.collect.Sets;
+
+import backend.exception.InvalidUriInputException;
+import model.TopicInfo;
 
 public class TopicManagerImpl implements TopicManager {
 
@@ -137,12 +140,26 @@ public class TopicManagerImpl implements TopicManager {
     final QueryExecution constructExecution = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT,
         constructQuery);
     memoryModel = constructExecution.execConstruct(memoryModel);
+ // Add labels of types to memoryModel
+    final Query typeQuery = QueryFactory.create(SPARQL_PREFIXES
+        + "CONSTRUCT { ?s rdfs:type ?tl } "
+        + "WHERE { ?s dbo:type ?type. "
+        + "?type rdfs:label ?tl. "
+        + "FILTER ("
+        + "  ?s IN (<" + String.join(">, <", proposals) + ">)"
+        + "  && langMatches(lang(?tl), \"EN\")"
+        + ")}");
+    final QueryExecution typeExecution = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT,
+    		typeQuery);
+    memoryModel = typeExecution.execConstruct(memoryModel);
+    memoryModel.write(System.out, "TURTLE");
     // Get a random property that connects each new resource to the current resource together with the new resources'
     // uris and labels
     final ResultSet result = getSelectQueryResultSet(SPARQL_PREFIXES +
-        "SELECT ?uri ?label (SAMPLE(?property) AS ?sample_property)"
-        + "WHERE { { ?current_word ?property ?uri } "
+        "SELECT ?uri ?label ?type_label (SAMPLE(?property) AS ?sample_property)"
+        + "WHERE { { ?current_word ?property ?uri} "
         + "UNION {?uri ?property ?current_word} "
+        + "UNION { ?current_word rdfs:type ?type_label } "
         + "?uri rdfs:label ?label "
         + "FILTER(?property != " + MEANINGLESS_PROPERTY
         + " && ?current_word = <" + currentTopic + ">"

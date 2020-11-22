@@ -64,7 +64,7 @@ public class ProposedTopicList {
 			String url = resource.get("uri").toString();
 
 			ProposedTopicListEntry entry = new ProposedTopicListEntry(
-					new TopicInfo(url, resource.get("label").toString(), ""));
+					new TopicInfo(url, resource.get("label").toString(), resource.get("type_label").toString()));
 			topics.put(url, entry);
 			topicList.getChildren().add(entry.getRoot());
 		}
