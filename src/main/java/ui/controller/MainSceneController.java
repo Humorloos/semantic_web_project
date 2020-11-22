@@ -102,15 +102,6 @@ public class MainSceneController implements Initializable {
 
 		proposedTopicList.clearAndPopulateList(result);
 
-		int count = 0;
-//		StringBuffer sb = new StringBuffer();
-//		for (QuerySolution qs : result) {
-//			sb.append(qs + "\n");
-//			count++;
-//		}
-//		Text erg = new Text(sb.toString());
-//		textArea1.getChildren().addAll(erg);
-
 	}
 
 }
