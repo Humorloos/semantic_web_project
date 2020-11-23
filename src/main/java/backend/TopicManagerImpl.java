@@ -15,6 +15,11 @@ import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.sparql.core.ResultBinding;
 
 public class TopicManagerImpl implements TopicManager {
@@ -183,7 +188,24 @@ public class TopicManagerImpl implements TopicManager {
 
   @Override
   public void removeResourceFromTopics(final String resourceUrl) {
-
+	  StmtIterator iter = memoryModel.listStatements();
+	  while (iter.hasNext()) {
+		  Statement stmt = iter.nextStatement();
+		  Resource  subject = stmt.getSubject(); 
+		  RDFNode   object    = stmt.getObject();
+		  Property  predicate = stmt.getPredicate();
+		  if(object.toString().equals(resourceUrl)||subject.toString().equals(resourceUrl) || predicate.toString().equals(resourceUrl)) {
+			  Statement stmt_delete = memoryModel.createStatement
+                      (memoryModel.createResource(subject),
+                       memoryModel.createProperty(predicate.toString()),
+                       memoryModel.createResource(object.toString())
+                      );
+              memoryModel.remove(stmt_delete);
+              System.out.println("deleted the triples" + subject + " " + predicate + " " + object);
+		  }
+	  }
+	  this.previousResources.remove(resourceUrl);
+	  currentTopic = "";
   }
 
   private ResultSet getSelectQueryResultSet(final String queryString) {

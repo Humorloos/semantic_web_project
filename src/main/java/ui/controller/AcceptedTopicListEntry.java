@@ -3,9 +3,12 @@ package ui.controller;
 
 import java.io.IOException;
 
+import application.SWTApplication;
+import backend.exception.InvalidUriInputException;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import model.TopicInfo;
 
@@ -22,6 +25,9 @@ public class AcceptedTopicListEntry {
 	private Label resourceLabel;
 
 	private TopicInfo topic;
+	
+	@FXML
+	private Button button1;
 
 	/**
 	 * Constructor of the controller.
@@ -46,6 +52,11 @@ public class AcceptedTopicListEntry {
 		}
 
 		resourceLabel.setText(topic.getLabel());	
+		
+		button1.setOnAction(e -> {
+			SWTApplication.getTopicManager().removeResourceFromTopics(topic.getResourceUrl());
+			SWTApplication.getMainController().removeTopicAcceptedTopics(topic);
+		});
 	}
 
 	public Parent getRoot() {
