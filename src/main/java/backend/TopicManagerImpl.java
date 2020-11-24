@@ -1,12 +1,13 @@
 package backend;
 
+
 import backend.exception.InvalidUriInputException;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import model.TopicInfo;
-import org.apache.commons.collections4.IteratorUtils;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
@@ -31,7 +32,7 @@ public class TopicManagerImpl implements TopicManager {
       + "PREFIX dbo: <" + ONTOLOGY_URI + "> "
       + "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> "
       + "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>";
-  private static final Set<String> MEANINGLESS_PROPERTIES = Set.of("dbo:wikiPageWikiLink", "rdf:type");
+  private static final Set<String> MEANINGLESS_PROPERTIES = Set.of("dbo:wikiPageWikiLink", "rdf:type", "rdfs:label");
 
   /**
    * Model containing all valid triples belonging to previously seen resources.
@@ -91,17 +92,17 @@ public class TopicManagerImpl implements TopicManager {
   }
 
   /**
-   * Finds numOfSuggestions resources with most links to previous resources and at least one link to the current
-   * resource, ordered by the number of links to previous resources together with one property each connecting them to
-   * the current resource.
+   * Finds numOfSuggestions resources with most links to previous resources, ordered by the number of links to previous
+   * resources together with one property each and the previous resource they are connected to via this property.
    *
    * @param numOfSuggestions the number of resources to return as suggestisons
    * @return List of {@link ResultBinding}, each containing a variable "uri" which is bound to the new resource's URI, a
    * variable "label" which is bound to the new resource's label, and a variable "sample_property" which is bound to one
-   * property connecting the new resource to the current resource
+   * property connecting the new resource to a previous resource and a variable "previous_topic" which is bound to
+   * the previous resource the proposal is connected to via the sample property.
    */
   @Override
-  public List<QuerySolution> getSuggestionsForCurrentTopic(final int numOfSuggestions) {
+  public List<QuerySolution> getSuggestionsForPreviousResources(final int numOfSuggestions) {
     final String previousResourceFilter =
         "FILTER(?new_word NOT IN (<" + String.join(">, <", previousResources) + ">))";
 
@@ -114,8 +115,7 @@ public class TopicManagerImpl implements TopicManager {
     while (resourcesFound < numOfSuggestions) {
       // order resources in memoryModel by number of connections to previous resources
       String query = SPARQL_PREFIXES +
-          "SELECT ?new_word (GROUP_CONCAT(DISTINCT ?old_word) AS ?old_words) "
-          + "(GROUP_CONCAT(DISTINCT ?type) AS ?types)"
+          "SELECT ?new_word (GROUP_CONCAT(DISTINCT ?type) AS ?types)"
           + "WHERE { { ?old_word ?p ?new_word " + previousResourceFilter + "} "
           + "UNION {?new_word ?p ?old_word " + previousResourceFilter + "} . "
           + "?new_word rdf:type ?type "
@@ -129,18 +129,17 @@ public class TopicManagerImpl implements TopicManager {
       if (!orderedResources.hasNext()) {
         break;
       }
-      // Get highest ranking numberOfProposals resources that are connected to the current resource
+      // Get highest ranking numberOfProposals resources that have at least one unique type
       while (orderedResources.hasNext() && resourcesFound < numOfSuggestions) {
         final QuerySolution nextProposal = orderedResources.next();
-        final Set<String> old_words = Sets.newHashSet(nextProposal.get("?old_words").toString().split(" "));
-        if (old_words.contains(currentTopic)) {
-          final Set<String> proposalTypeSet = Sets.newHashSet(nextProposal.get("?types").toString().split(" "));
-          proposalTypeSet.removeAll(presentTypes);
-          if (proposalTypeSet.size() > 0) {
-            presentTypes.addAll(proposalTypeSet);
-            resourcesFound++;
-            proposals.add(nextProposal.get("?new_word").toString());
-          }
+        // Only add a resource to the proposals if there it has at least one type that is not yet contained in the
+        // types of already present proposals
+        final Set<String> proposalTypeSet = Sets.newHashSet(nextProposal.get("?types").toString().split(" "));
+        proposalTypeSet.removeAll(presentTypes);
+        if (proposalTypeSet.size() > 0) {
+          presentTypes.addAll(proposalTypeSet);
+          resourcesFound++;
+          proposals.add(nextProposal.get("?new_word").toString());
         }
       }
     }
@@ -157,18 +156,15 @@ public class TopicManagerImpl implements TopicManager {
     final QueryExecution constructExecution = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT,
         constructQuery);
     memoryModel = constructExecution.execConstruct(memoryModel);
-    // Get a random property that connects each new resource to the current resource together with the new resources'
-    // uris and labels
-    final ResultSet result = getSelectQueryResultSet(SPARQL_PREFIXES +
-        "SELECT ?uri ?label (SAMPLE(?property) AS ?sample_property)"
-        + "WHERE { { ?current_word ?property ?uri } "
-        + "UNION {?uri ?property ?current_word} "
+    // Get uris and labels of the proposals and a previous resource and the property that connects the proposals to
+    // that resource.
+    return proposals.stream().map(proposal -> getSelectQueryResultSet(SPARQL_PREFIXES +
+        "SELECT ?uri ?label ?sample_property ?previous_topic "
+        + "WHERE { { ?previous_topic ?sample_property ?uri } "
+        + "UNION {?uri ?sample_property ?previous_topic} "
         + "?uri rdfs:label ?label "
-        + "FILTER(?property NOT IN (" + String.join(",", MEANINGLESS_PROPERTIES) + ")"
-        + " && ?current_word = <" + currentTopic + ">"
-        + " && ?uri IN (<" + String.join(">, <", proposals) + ">))} "
-        + "GROUP BY ?uri ?label");
-    return IteratorUtils.toList(result);
+        + "FILTER(?sample_property NOT IN (" + String.join(",", MEANINGLESS_PROPERTIES) + ")"
+        + " && ?uri = <" + proposal + ">)} ").next()).collect(Collectors.toList());
   }
 
   @Override
