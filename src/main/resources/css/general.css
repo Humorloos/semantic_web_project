@@ -13,6 +13,10 @@
 	-fx-text-fill: -fx-black;
 }
 
+.label-small {
+	-fx-font-size: 11;
+}
+
 .title {
 	-fx-font-size: 32;
 	-fx-text-fill: -fx-secondary;
