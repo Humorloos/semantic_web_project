@@ -49,7 +49,7 @@ public interface TopicManager {
 	 * @return {@link List} of {@link QuerySolution}s with the topics that were
 	 *         suggested.
 	 */
-	List<QuerySolution> getSuggestionsForCurrentTopic(int numOfSuggestions);
+	List<QuerySolution> getSuggestionsForPreviousResources(int numOfSuggestions);
 
 	/**
 	 * Loads all previously suggested topics for a given initial resource. If there

@@ -92,17 +92,17 @@ public class TopicManagerImpl implements TopicManager {
   }
 
   /**
-   * Finds numOfSuggestions resources with most links to previous resources and at least one link to the current
-   * resource, ordered by the number of links to previous resources together with one property each connecting them to
-   * the current resource.
+   * Finds numOfSuggestions resources with most links to previous resources, ordered by the number of links to previous
+   * resources together with one property each and the previous resource they are connected to via this property.
    *
    * @param numOfSuggestions the number of resources to return as suggestisons
    * @return List of {@link ResultBinding}, each containing a variable "uri" which is bound to the new resource's URI, a
    * variable "label" which is bound to the new resource's label, and a variable "sample_property" which is bound to one
-   * property connecting the new resource to the current resource
+   * property connecting the new resource to a previous resource and a variable "previous_topic" which is bound to
+   * the previous resource the proposal is connected to via the sample property.
    */
   @Override
-  public List<QuerySolution> getSuggestionsForCurrentTopic(final int numOfSuggestions) {
+  public List<QuerySolution> getSuggestionsForPreviousResources(final int numOfSuggestions) {
     final String previousResourceFilter =
         "FILTER(?new_word NOT IN (<" + String.join(">, <", previousResources) + ">))";
 

@@ -23,7 +23,7 @@ class TopicManagerImplIT {
     final String currentResource = RESOURCE_URI + "SAP_Arena";
     cut.addResourceToTopics(currentResource);
     // when
-    final List<QuerySolution> result = cut.getSuggestionsForCurrentTopic(nProposals);
+    final List<QuerySolution> result = cut.getSuggestionsForPreviousResources(nProposals);
     // then
     assertThat(result).hasSize(nProposals)
         .allSatisfy(resultBinding -> assertThat(
