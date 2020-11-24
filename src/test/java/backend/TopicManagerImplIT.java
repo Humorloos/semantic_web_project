@@ -33,9 +33,10 @@ class TopicManagerImplIT {
         .as("some proposal must have label '2010_IIHF_World_Championship' and corresponding URI")
         .anySatisfy(resultBinding -> {
           final String proposal = "2010_IIHF_World_Championship";
-          assertThat(resultBinding.get("uri").toString().contains(proposal))
-              .isTrue();
+          assertThat(resultBinding.get("uri").toString().contains(proposal));
           assertThat(resultBinding.get("label").asLiteral().getString()).isEqualTo(proposal.replace("_", " "));
+          // Mannheim is actually described to be the Stadium of this Championship in DBPedia...
+          assertThat(resultBinding.get("previous_topic").toString().contains("Mannheim"));
         });
   }
 
