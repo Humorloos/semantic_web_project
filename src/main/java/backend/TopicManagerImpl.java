@@ -55,7 +55,7 @@ public class TopicManagerImpl implements TopicManager {
    * @throws InvalidUriInputException if the provided resource is not specified in DBPedia
    */
   @Override
-  public void addResourceToTopics(final String resourceUrl) throws InvalidUriInputException {
+  public String addResourceToTopics(final String resourceUrl) throws InvalidUriInputException {
     final Query constructSubjectQuery = QueryFactory.create(SPARQL_PREFIXES
         + "CONSTRUCT { <" + resourceUrl + "> ?p ?o . ?o rdf:type ?type }"
         + "WHERE { <" + resourceUrl + "> ?p ?o . "
@@ -88,6 +88,18 @@ public class TopicManagerImpl implements TopicManager {
     memoryModel = memoryModel.add(newModel);
     previousResources.add(resourceUrl);
     currentTopic = resourceUrl;
+    
+    //get the label of the topic and return it
+    final Query topicInfoQuery = QueryFactory.create(SPARQL_PREFIXES
+    		+ "SELECT ?label "
+    		+ "WHERE {"
+    		+ "<" + resourceUrl + "> rdfs:label ?label."
+    		+ "FILTER (langMatches(lang(?label), \"EN\"))"
+    		+ "}");
+    QueryExecution exec = QueryExecutionFactory
+            .sparqlService(DBPEDIA_SPARQL_ENDPOINT, topicInfoQuery);
+    ResultSet rs = exec.execSelect();
+    return IteratorUtils.toList(rs).get(0).get("label").toString();
   }
 
   /**
