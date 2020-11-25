@@ -7,7 +7,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import application.SWTApplication;
-import backend.TopicManagerImpl;
 import backend.exception.InvalidUriInputException;
 import javafx.event.ActionEvent;
 
@@ -39,12 +38,6 @@ public class ProposedTopicListEntry {
 
 	/**
 	 * Constructor of the controller.
-	 * 
-	 * @param resourceUrl The URL, specifying the location of the resource, as a
-	 *                    {@link String}.
-	 * @param label       The label of the resource in english as a {@link String}.
-	 * @param wikiUrl     Url to the Wikipedia article of the given resource as
-	 *                    string.
 	 */
 	public ProposedTopicListEntry(TopicInfo info) {
 		/*
@@ -69,7 +62,7 @@ public class ProposedTopicListEntry {
 			try {
 				SWTApplication.getTopicManager().addResourceToTopics(topicInfo.getResourceUrl());
 				SWTApplication.getMainController().addTopicToAcceptedTopics(topicInfo);
-				SWTApplication.getTopicManager().getSuggestionsForCurrentTopic(SWTApplication.getNumberOfSuggestions());
+				SWTApplication.getTopicManager().getSuggestionsForPreviousResources(SWTApplication.getNumberOfSuggestions());
 			} catch (InvalidUriInputException e1) {
 				// TODO add Alert?
 				e1.printStackTrace();

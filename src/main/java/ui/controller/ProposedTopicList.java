@@ -56,16 +56,12 @@ public class ProposedTopicList {
 	 * @param proposals {@link List} of {@link QuerySolution}s, containing
 	 *                  information about each proposed topic.
 	 */
-	protected void clearAndPopulateList(List<QuerySolution> proposals) {
+	protected void clearAndPopulateList(List<TopicInfo> proposals) {
 		topicList.getChildren().clear();
 
-		for (QuerySolution resource : proposals) {
-			// TODO currently generates a 'label' from the URL -> use actual label
-			String url = resource.get("uri").toString();
-
-			ProposedTopicListEntry entry = new ProposedTopicListEntry(
-					new TopicInfo(url, resource.get("label").toString(), ""));
-			topics.put(url, entry);
+		for (TopicInfo topic : proposals) {
+			ProposedTopicListEntry entry = new ProposedTopicListEntry(topic);
+			topics.put(topic.getResourceUrl(), entry);
 			topicList.getChildren().add(entry.getRoot());
 		}
 

@@ -4,8 +4,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import org.apache.jena.query.QuerySolution;
-
 import application.SWTApplication;
 import backend.TopicManagerImpl;
 import backend.exception.InvalidUriInputException;
@@ -102,8 +100,8 @@ public class MainSceneController implements Initializable {
 			a.showAndWait();
 		}
 		// vorher
-		List<QuerySolution> result = SWTApplication.getTopicManager()
-				.getSuggestionsForCurrentTopic(numOfRequestedSuggestions);
+		List<TopicInfo> result = SWTApplication.getTopicManager()
+				.getSuggestionsForPreviousResources(numOfRequestedSuggestions);
 
 		proposedTopicList.clearAndPopulateList(result);
 
