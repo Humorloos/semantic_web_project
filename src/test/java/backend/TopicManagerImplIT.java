@@ -3,11 +3,13 @@ package backend;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.ThrowableAssert.catchThrowable;
 
-import backend.exception.InvalidUriInputException;
 import java.util.List;
 import java.util.function.Function;
-import org.apache.jena.query.QuerySolution;
+
 import org.junit.jupiter.api.Test;
+
+import backend.exception.InvalidUriInputException;
+import model.TopicInfo;
 
 class TopicManagerImplIT {
 
@@ -23,20 +25,18 @@ class TopicManagerImplIT {
     final String currentResource = RESOURCE_URI + "SAP_Arena";
     cut.addResourceToTopics(currentResource);
     // when
-    final List<QuerySolution> result = cut.getSuggestionsForPreviousResources(nProposals);
+    final List<TopicInfo> result = cut.getSuggestionsForPreviousResources(nProposals);
     // then
     assertThat(result).hasSize(nProposals)
-        .allSatisfy(resultBinding -> assertThat(
-            List.of("uri", "sample_property", "label").stream().map((Function<String, Object>) resultBinding::contains))
-            .as("each result set must contain the variables 'new_word' and 'sample_property'")
-            .containsOnly(true))
+        .allSatisfy(resultBinding -> assertThat(resultBinding.getResourceUrl() != "" && resultBinding.getPropertyLabel() != "" && resultBinding.getLabel() != "")
+            .as("each result set must contain the variables 'new_word' and 'sample_property'"))
         .as("some proposal must have label '2010_IIHF_World_Championship' and corresponding URI")
         .anySatisfy(resultBinding -> {
           final String proposal = "2010_IIHF_World_Championship";
-          assertThat(resultBinding.get("uri").toString().contains(proposal));
-          assertThat(resultBinding.get("label").asLiteral().getString()).isEqualTo(proposal.replace("_", " "));
+          assertThat(resultBinding.getResourceUrl().contains(proposal));
+          assertThat(resultBinding.getLabel()).isEqualTo(proposal.replace("_", " "));
           // Mannheim is actually described to be the Stadium of this Championship in DBPedia...
-          assertThat(resultBinding.get("previous_topic").toString().contains("Mannheim"));
+          assertThat(resultBinding.getPreviousResource().contains("Mannheim"));
         });
   }
 
