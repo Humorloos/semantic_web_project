@@ -18,8 +18,9 @@ public interface TopicManager {
 	 * Add the given resource to the user's list of topics.
 	 *
 	 * @param resourceUrl The Url identifying the resource to add.
+	 * @return The label of the resource.
 	 */
-	void addResourceToTopics(String resourceUrl) throws InvalidUriInputException;
+	String addResourceToTopics(String resourceUrl) throws InvalidUriInputException;
 
 	/**
 	 * Get specific information on a given resource (Link to wikipedia etc.)
