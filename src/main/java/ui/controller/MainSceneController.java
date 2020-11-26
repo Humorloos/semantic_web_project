@@ -87,7 +87,10 @@ public class MainSceneController implements Initializable {
 		// textArea1.setText(s);
 		// register the new Resource
 		try {
-			SWTApplication.getTopicManager().addResourceToTopics(TopicManagerImpl.RESOURCE_URI + s);
+			String resourceUrl = TopicManagerImpl.RESOURCE_URI + s;
+			String label = SWTApplication.getTopicManager().addResourceToTopics(resourceUrl);
+			TopicInfo info = new TopicInfo(resourceUrl, label, "", "", ""); //TODO add type of resource?
+			this.acceptedTopicList.addTopic(info);
 		} catch (InvalidUriInputException e) {
 			Alert a = new Alert(Alert.AlertType.ERROR, "Invalid Input");
 			a.showAndWait();
