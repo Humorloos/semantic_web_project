@@ -26,10 +26,14 @@
 	-fx-background-color: -fx-white;
 	-fx-border-width: 0 2 0 4;
 	-fx-border-color: transparent;
+	-fx-cursor: hand;
 }
 
 .cell:hover {
 	-fx-border-color: -fx-secondary;
+}
+.cell:hover .label {
+	-fx-text-fill: -fx-primary;
 }
 
 .scroll-pane {

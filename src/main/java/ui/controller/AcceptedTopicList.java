@@ -67,5 +67,10 @@ public class AcceptedTopicList {
 		AcceptedTopicListEntry entry = topics.remove(resourceUrl);
 		topicList.getChildren().remove(entry.getRoot());
 	}
+	
+
+	public TopicInfo getTopic(String resourceUrl) {
+		return topics.get(resourceUrl).getTopicInfo();
+	}
 
 }

@@ -92,7 +92,7 @@ public class MainSceneController implements Initializable {
 			TopicInfo info = new TopicInfo(resourceUrl, label, "", "", ""); //TODO add type of resource?
 			this.acceptedTopicList.addTopic(info);
 		} catch (InvalidUriInputException e) {
-			Alert a = new Alert(Alert.AlertType.ERROR, "Invalid Input");
+			Alert a = new Alert(Alert.AlertType.ERROR, "The resource could not be found");
 			a.showAndWait();
 		}
 
@@ -108,6 +108,10 @@ public class MainSceneController implements Initializable {
 
 		proposedTopicList.clearAndPopulateList(result);
 
+	}
+
+	public TopicInfo getProposedTopicInfo(String resourceUrl) {
+		return acceptedTopicList.getTopic(resourceUrl);
 	}
 
 }

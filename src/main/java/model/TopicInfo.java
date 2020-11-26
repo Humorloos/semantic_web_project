@@ -21,8 +21,8 @@ public class TopicInfo {
 	public TopicInfo(String resourceUrl, String label, String typeLabel, String propertyLabel, String previousResource) {
 		this.resourceUrl = resourceUrl;
 		this.topicLabel = label.split("@")[0];
-		this.propertyLabel = propertyLabel;
-		this.typeLabel = typeLabel;
+		this.propertyLabel = propertyLabel.split("@")[0];
+		this.typeLabel = typeLabel.split("@")[0];
 		this.previousResource = previousResource;
 		this.wikiUri = "https://en.wikipedia.org/wiki/"+resourceUrl.replaceAll("http://dbpedia.org/resource/", ""); // TODO: construct from resourceUrl and wikipedia-url
 	}

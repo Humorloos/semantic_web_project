@@ -29,6 +29,9 @@ public class AcceptedTopicListEntry {
 	@FXML
 	private Button button1;
 
+	public TopicInfo getTopicInfo() {
+		return topic;
+	}
 	/**
 	 * Constructor of the controller.
 	 * 
