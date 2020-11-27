@@ -55,7 +55,7 @@ public class ProposedTopicListEntry {
 		String previousTopicLabel = SWTApplication.getMainController().getProposedTopicInfo(topicInfo.getPreviousResource()).getLabel();
 		relationLabel.setText(topicInfo.getPropertyLabel() + ": " + previousTopicLabel);
 		resourceLabel.setText(topicInfo.getLabel());	
-		hyper1.setText("Wikipedia");
+		hyper1.setText("Wikipedia.com");
 //		btn1.setText("add to my topics ");
 //		btn1.setOnAction(e -> {
 //			try {
