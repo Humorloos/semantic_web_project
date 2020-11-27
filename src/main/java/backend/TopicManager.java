@@ -18,8 +18,9 @@ public interface TopicManager {
 	 * Add the given resource to the user's list of topics.
 	 *
 	 * @param resourceUrl The Url identifying the resource to add.
+	 * @return The label of the resource.
 	 */
-	void addResourceToTopics(String resourceUrl) throws InvalidUriInputException;
+	String addResourceToTopics(String resourceUrl) throws InvalidUriInputException;
 
 	/**
 	 * Get specific information on a given resource (Link to wikipedia etc.)
@@ -46,10 +47,10 @@ public interface TopicManager {
 	 * {@link TopicManagerImpl} will fetch a new list of suggestions.
 	 * 
 	 * @param numOfSuggestions The number of suggestions to make.
-	 * @return {@link List} of {@link QuerySolution}s with the topics that were
+	 * @return {@link List} of {@link TopicInfo}s with the topics that were
 	 *         suggested.
 	 */
-	List<QuerySolution> getSuggestionsForPreviousResources(int numOfSuggestions);
+	List<TopicInfo> getSuggestionsForPreviousResources(int numOfSuggestions);
 
 	/**
 	 * Loads all previously suggested topics for a given initial resource. If there

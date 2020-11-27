@@ -7,13 +7,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import application.SWTApplication;
-import backend.exception.InvalidUriInputException;
 import javafx.event.ActionEvent;
-
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import model.TopicInfo;
@@ -28,11 +25,9 @@ public class ProposedTopicListEntry {
 	private Parent root;
 
 	@FXML
-	private Label resourceLabel;
+	private Label resourceLabel, typeLabel, relationLabel;
 	@FXML
 	private Hyperlink hyper1;
-	@FXML
-	private Button btn1;
 
 	private TopicInfo topicInfo;
 
@@ -55,19 +50,23 @@ public class ProposedTopicListEntry {
 			e.printStackTrace();
 		}
 
+		
+		typeLabel.setText(topicInfo.getType());
+		String previousTopicLabel = SWTApplication.getMainController().getProposedTopicInfo(topicInfo.getPreviousResource()).getLabel();
+		relationLabel.setText(topicInfo.getPropertyLabel() + ": " + previousTopicLabel);
 		resourceLabel.setText(topicInfo.getLabel());	
-		hyper1.setText(info.getWikiUri());
-		btn1.setText("add to my topics ");
-		btn1.setOnAction(e -> {
-			try {
-				SWTApplication.getTopicManager().addResourceToTopics(topicInfo.getResourceUrl());
-				SWTApplication.getMainController().addTopicToAcceptedTopics(topicInfo);
-				SWTApplication.getTopicManager().getSuggestionsForPreviousResources(SWTApplication.getNumberOfSuggestions());
-			} catch (InvalidUriInputException e1) {
-				// TODO add Alert?
-				e1.printStackTrace();
-			}
-		});
+		hyper1.setText("Wikipedia.com");
+//		btn1.setText("add to my topics ");
+//		btn1.setOnAction(e -> {
+//			try {
+//				SWTApplication.getTopicManager().addResourceToTopics(topicInfo.getResourceUrl());
+//				SWTApplication.getMainController().addTopicToAcceptedTopics(topicInfo);
+//				SWTApplication.getTopicManager().getSuggestionsForPreviousResources(SWTApplication.getNumberOfSuggestions());
+//			} catch (InvalidUriInputException e1) {
+//				// TODO add Alert?
+//				e1.printStackTrace();
+//			}
+//		}); 	Button removed
 		
 		
         hyper1.setOnAction((ActionEvent e) -> {

@@ -3,11 +3,16 @@ package backend;
 
 import backend.exception.InvalidUriInputException;
 import com.google.common.collect.Sets;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import model.TopicInfo;
+
+import org.apache.commons.collections4.IteratorUtils;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
@@ -56,7 +61,7 @@ public class TopicManagerImpl implements TopicManager {
    * @throws InvalidUriInputException if the provided resource is not specified in DBPedia
    */
   @Override
-  public void addResourceToTopics(final String resourceUrl) throws InvalidUriInputException {
+  public String addResourceToTopics(final String resourceUrl) throws InvalidUriInputException {
     final Query constructSubjectQuery = QueryFactory.create(SPARQL_PREFIXES
         + "CONSTRUCT { <" + resourceUrl + "> ?p ?o . ?o rdf:type ?type }"
         + "WHERE { <" + resourceUrl + "> ?p ?o . "
@@ -89,6 +94,18 @@ public class TopicManagerImpl implements TopicManager {
     memoryModel = memoryModel.add(newModel);
     previousResources.add(resourceUrl);
     currentTopic = resourceUrl;
+    
+    //get the label of the topic and return it
+    final Query topicInfoQuery = QueryFactory.create(SPARQL_PREFIXES
+    		+ "SELECT ?label "
+    		+ "WHERE {"
+    		+ "<" + resourceUrl + "> rdfs:label ?label."
+    		+ "FILTER (langMatches(lang(?label), \"EN\"))"
+    		+ "}");
+    QueryExecution exec = QueryExecutionFactory
+            .sparqlService(DBPEDIA_SPARQL_ENDPOINT, topicInfoQuery);
+    ResultSet rs = exec.execSelect();
+    return IteratorUtils.toList(rs).get(0).get("label").toString();
   }
 
   /**
@@ -102,7 +119,7 @@ public class TopicManagerImpl implements TopicManager {
    * the previous resource the proposal is connected to via the sample property.
    */
   @Override
-  public List<QuerySolution> getSuggestionsForPreviousResources(final int numOfSuggestions) {
+  public List<TopicInfo> getSuggestionsForPreviousResources(final int numOfSuggestions) {
     final String previousResourceFilter =
         "FILTER(?new_word NOT IN (<" + String.join(">, <", previousResources) + ">))";
 
@@ -158,14 +175,100 @@ public class TopicManagerImpl implements TopicManager {
     memoryModel = constructExecution.execConstruct(memoryModel);
     // Get uris and labels of the proposals and a previous resource and the property that connects the proposals to
     // that resource.
-    return proposals.stream().map(proposal -> getSelectQueryResultSet(SPARQL_PREFIXES +
+    List<QuerySolution> solutions = proposals.stream().map(proposal -> getSelectQueryResultSet(SPARQL_PREFIXES +
         "SELECT ?uri ?label ?sample_property ?previous_topic "
         + "WHERE { { ?previous_topic ?sample_property ?uri } "
         + "UNION {?uri ?sample_property ?previous_topic} "
         + "?uri rdfs:label ?label "
         + "FILTER(?sample_property NOT IN (" + String.join(",", MEANINGLESS_PROPERTIES) + ")"
         + " && ?uri = <" + proposal + ">)} ").next()).collect(Collectors.toList());
+    HashMap<String, String> propertyLabels = getLabelsForProperties(solutions);
+	HashMap<String, String> typeLabels = getLabelsForType(solutions);
+	return getInfoFromQueryResult(solutions, typeLabels, propertyLabels);
+  
   }
+  
+	  /**
+		 * Extracts relevant info from the results of the query and uses it to construct
+		 * {@link TopicInfo}s.
+		 * 
+		 * @param queryResult    The result of the SPARQL-Query.
+		 * @param typeLabels     {@link HashMap} containing labels for the rdf:type of
+		 *                       the resources.
+		 * @param propertyLabels {@link HashMap} containing the labels for each property
+		 *                       marking the relation to another resource.
+		 * @return List of {@link TopicInfo}s constructed from the given data.
+		 */
+	private List<TopicInfo> getInfoFromQueryResult(List<QuerySolution> queryResult, HashMap<String, String> typeLabels, HashMap<String, String> propertyLabels) {
+			List<TopicInfo> suggestions = new ArrayList<TopicInfo>();
+			for (QuerySolution topic : queryResult) {
+				String url = topic.get("uri").toString();
+				suggestions.add(new TopicInfo(url, topic.get("label").toString(), typeLabels.get(url), propertyLabels.get(topic.get("sample_property").toString()), topic.get("previous_topic").toString()));
+			}
+			return suggestions;
+	}
+
+	/**
+	 * Get the labels for the sample properties to display them to the user.
+	 * 
+	 * @param result The result of the SPARQL query to find suggestions, as
+	 *               {@link List} of {@link QuerySolution}s.
+	 * @return {@link HashMap} containing the urls of the properties as keys and the
+	 *         labels as Values.
+	 */
+	private HashMap<String, String> getLabelsForProperties(List<QuerySolution> result) {
+		List<String> relations = new ArrayList<String>();
+		for (QuerySolution qs : result) {
+			relations.add(qs.get("sample_property").toString());
+		}
+		String query = SPARQL_PREFIXES + " SELECT DISTINCT ?property ?label "
+				+ "WHERE {"
+				+ "?property rdfs:label ?label. " 
+				+ "FILTER (?property IN (<" + String.join(">,<", relations) + ">) && "
+				+ "langMatches(lang(?label), \"EN\"))" 
+				+ "}";
+		QueryExecution exec = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT, query);
+		List<QuerySolution> labels = IteratorUtils.toList(exec.execSelect());
+		HashMap<String, String> labelMap = new HashMap<String, String>();
+		for (QuerySolution qs : labels) {
+			labelMap.put(qs.get("property").toString(), qs.get("label").toString());
+		}
+		return labelMap;
+	}
+	
+	/**
+	 * Get the labels for the types to display them to the user.
+	 * 
+	 * @param result The result of the SPARQL query to find suggestions, as
+	 *               {@link List} of {@link QuerySolution}s.
+	 * @return {@link HashMap} containing the urls of the types as keys and the
+	 *         labels as Values.
+	 */
+	private HashMap<String, String> getLabelsForType(List<QuerySolution> result) {
+		List<String> topics = new ArrayList<String>();
+		for (QuerySolution qs : result) {
+			topics.add(qs.get("uri").toString());
+		}
+		String query = SPARQL_PREFIXES + " SELECT DISTINCT ?topic ?type ?label " 
+				+ "WHERE {"
+				+ "?topic rdf:type ?type. "
+				+ "?type rdfs:label ?label. " 
+				+ "FILTER (?topic IN (<" + String.join(">,<", topics) + ">) && "
+				+ "strstarts(str(?type),str(dbo:)) && "
+				+ "langMatches(lang(?label), \"EN\"))" 
+				+ "}";
+		QueryExecution exec = QueryExecutionFactory.sparqlService(DBPEDIA_SPARQL_ENDPOINT, query);
+		List<QuerySolution> labels = IteratorUtils.toList(exec.execSelect());
+		HashMap<String, String> labelMap = new HashMap<String, String>();
+		for (QuerySolution qs : labels) {
+			labelMap.put(qs.get("topic").toString(), qs.get("label").toString());
+		}
+		return labelMap;
+	}
+
+  
+  
+  
 
   @Override
   public TopicInfo getInformationAboutTopic(final String resourceUrl) {
@@ -197,7 +300,6 @@ public class TopicManagerImpl implements TopicManager {
                        memoryModel.createResource(object.toString())
                       );
               memoryModel.remove(stmt_delete);
-              System.out.println("deleted the triples" + subject + " " + predicate + " " + object);
 		  }
 	  }
 	  this.previousResources.remove(resourceUrl);

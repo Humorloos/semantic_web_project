@@ -13,6 +13,10 @@
 	-fx-text-fill: -fx-black;
 }
 
+.label-small {
+	-fx-font-size: 11;
+}
+
 .title {
 	-fx-font-size: 32;
 	-fx-text-fill: -fx-secondary;
@@ -21,11 +25,19 @@
 .cell {
 	-fx-background-color: -fx-white;
 	-fx-border-width: 0 2 0 4;
-	-fx-border-color: transparent;
+	-fx-border-color: -fx-white;
+	-fx-cursor: hand;
 }
 
 .cell:hover {
-	-fx-border-color: -fx-secondary;
+	-fx-background-color: -fx-secondary;
+}
+.cell:hover .label {
+	-fx-text-fill: -fx-white;
+}
+
+.hyperlink {
+	-fx-text-fill: -fx-primary;
 }
 
 .scroll-pane {

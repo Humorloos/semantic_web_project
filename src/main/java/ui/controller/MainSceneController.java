@@ -4,8 +4,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import org.apache.jena.query.QuerySolution;
-
 import application.SWTApplication;
 import backend.TopicManagerImpl;
 import backend.exception.InvalidUriInputException;
@@ -19,6 +17,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.TextFlow;
 import model.TopicInfo;
+import ui.util.TextFieldConfigurator;
 
 /**
  * Controller class of the main {@link Scene} of the app. Handles every
@@ -26,7 +25,8 @@ import model.TopicInfo;
  */
 public class MainSceneController implements Initializable {
 
-	public static int NUM_OF_SUGGESTIONS = 15; // TODO let the user change this
+	public static final int MAX_NUM_OF_SUGGESTIONS = 50;
+	private int numOfRequestedSuggestions = 15;
 
 	@FXML
 	private AnchorPane proposedTopicBase, acceptedTopicBase;
@@ -57,6 +57,10 @@ public class MainSceneController implements Initializable {
 				onClick();
 			}
 		});
+		this.text1.requestFocus();
+		numberArea.setText(numOfRequestedSuggestions + "");
+		TextFieldConfigurator.configureNumericTextField(numberArea, MAX_NUM_OF_SUGGESTIONS);
+		TextFieldConfigurator.configureUrlTextField(text1);
 	}
 
 	public String onClick() {
@@ -74,8 +78,7 @@ public class MainSceneController implements Initializable {
 		this.proposedTopicList.removeTopic(topic.getResourceUrl());
 		this.acceptedTopicList.addTopic(topic);
 	}
-	
-	
+
 	public void removeTopicAcceptedTopics(TopicInfo topic) {
 		this.acceptedTopicList.removeTopicEntry(topic.getResourceUrl());
 	}
@@ -84,23 +87,31 @@ public class MainSceneController implements Initializable {
 		// textArea1.setText(s);
 		// register the new Resource
 		try {
-			SWTApplication.getTopicManager().addResourceToTopics(TopicManagerImpl.RESOURCE_URI + s);
+			String resourceUrl = TopicManagerImpl.RESOURCE_URI + s;
+			String label = SWTApplication.getTopicManager().addResourceToTopics(resourceUrl);
+			TopicInfo info = new TopicInfo(resourceUrl, label, "", "", ""); //TODO add type of resource?
+			this.acceptedTopicList.addTopic(info);
 		} catch (InvalidUriInputException e) {
-			Alert a = new Alert(Alert.AlertType.ERROR,"Invalid Input");
+			Alert a = new Alert(Alert.AlertType.ERROR, "The resource could not be found");
 			a.showAndWait();
 		}
-		
+
 		try {
-			NUM_OF_SUGGESTIONS = Integer.parseInt(numberArea.getText());
+			numOfRequestedSuggestions = Integer.parseInt(numberArea.getText());
 		} catch (NumberFormatException e) {
 			Alert a = new Alert(Alert.AlertType.ERROR, "Please give a number");
 			a.showAndWait();
 		}
 		// vorher
-		List<QuerySolution> result = SWTApplication.getTopicManager().getSuggestionsForPreviousResources(NUM_OF_SUGGESTIONS);
+		List<TopicInfo> result = SWTApplication.getTopicManager()
+				.getSuggestionsForPreviousResources(numOfRequestedSuggestions);
 
 		proposedTopicList.clearAndPopulateList(result);
 
+	}
+
+	public TopicInfo getProposedTopicInfo(String resourceUrl) {
+		return acceptedTopicList.getTopic(resourceUrl);
 	}
 
 }
