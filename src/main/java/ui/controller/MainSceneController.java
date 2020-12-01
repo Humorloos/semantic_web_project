@@ -49,6 +49,7 @@ public class MainSceneController implements Initializable {
 	private TextField numberArea;
 	@FXML
 	private ProgressIndicator indicator;
+
 	public ProgressIndicator getProgressIndicator() {
 		return indicator;
 	}
@@ -77,14 +78,14 @@ public class MainSceneController implements Initializable {
 		});
 		indicator.progressProperty().unbind();
 		indicator.setVisible(false);
-		
+
 		this.text1.requestFocus();
 		numberArea.setText(numOfRequestedSuggestions + "");
 		TextFieldConfigurator.configureNumericTextField(numberArea, MAX_NUM_OF_SUGGESTIONS);
 		TextFieldConfigurator.configureUrlTextField(text1);
 	}
-	
-	private Task<Void> createLoadTask(){
+
+	private Task<Void> createLoadTask() {
 		Task<Void> loadTask = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -109,7 +110,7 @@ public class MainSceneController implements Initializable {
 		String text = text1.getText();
 		setResult(text);
 	}
-	
+
 	/**
 	 * Add a new topic to the list of accepted topics.
 	 * 
@@ -133,15 +134,17 @@ public class MainSceneController implements Initializable {
 				TopicInfo info = new TopicInfo(resourceUrl, label, "", "", "", 0);
 				this.acceptedTopicList.addTopic(info);
 			});
-			
+
 		} catch (InvalidUriInputException e) {
-			Alert a = new Alert(Alert.AlertType.ERROR,
-					"If you have trouble entering a topic, check its Wikipedia-Url and copy everything after 'https://en.wikipedia.org/wiki/'.");
-			a.initStyle(StageStyle.UNIFIED);
-			a.getDialogPane().getStylesheets()
-					.add(SWTApplication.class.getResource("/css/general.css").toExternalForm());
-			a.setHeaderText("The resource could not be found. ");
-			a.showAndWait();
+			Platform.runLater(() -> {
+				Alert a = new Alert(Alert.AlertType.ERROR,
+						"If you have trouble entering a topic, check its Wikipedia-Url and copy everything after 'https://en.wikipedia.org/wiki/'.");
+				a.initStyle(StageStyle.UNIFIED);
+				a.getDialogPane().getStylesheets()
+						.add(SWTApplication.class.getResource("/css/general.css").toExternalForm());
+				a.setHeaderText("The resource could not be found. ");
+				a.showAndWait();
+			});
 		}
 
 		try {
