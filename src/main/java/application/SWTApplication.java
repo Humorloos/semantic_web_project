@@ -24,7 +24,7 @@ public class SWTApplication extends Application {
 	}
 	
 	public static int getNumberOfSuggestions() {
-		return MainSceneController.MAX_NUM_OF_SUGGESTIONS;
+		return mainController.getNumOfRequestedSuggestions();
 	}
 
 	/**

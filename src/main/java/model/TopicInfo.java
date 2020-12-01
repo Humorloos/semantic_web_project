@@ -14,6 +14,10 @@ public class TopicInfo {
 	private String previousResource; // The previous resource
 	private Integer nRelatedPreviousResources;
 
+	public Integer getnRelatedPreviousResources() {
+		return nRelatedPreviousResources;
+	}
+
 	/**
 	 * @param resourceUrl The URL, specifying the location of the resource, as a
 	 *                    {@link String}.

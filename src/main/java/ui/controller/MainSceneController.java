@@ -26,6 +26,11 @@ import ui.util.TextFieldConfigurator;
 public class MainSceneController implements Initializable {
 
 	public static final int MAX_NUM_OF_SUGGESTIONS = 50;
+
+	public int getNumOfRequestedSuggestions() {
+		return numOfRequestedSuggestions;
+	}
+
 	private int numOfRequestedSuggestions = 15;
 
 	@FXML

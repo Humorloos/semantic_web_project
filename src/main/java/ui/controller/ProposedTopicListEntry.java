@@ -78,7 +78,8 @@ public class ProposedTopicListEntry {
 				try {
 				SWTApplication.getTopicManager().addResourceToTopics(topicInfo.getResourceUrl());
 				SWTApplication.getMainController().addTopicToAcceptedTopics(topicInfo);
-				List<TopicInfo> result = SWTApplication.getTopicManager().getSuggestionsForPreviousResources(SWTApplication.getNumberOfSuggestions());
+				List<TopicInfo> result = SWTApplication.getTopicManager().getSuggestionsForPreviousResources(
+						SWTApplication.getNumberOfSuggestions());
 				SWTApplication.getMainController().getproposedTopicList().clearAndPopulateList(result);
 				}catch(InvalidUriInputException e1) {
 					Alert a = new Alert(Alert.AlertType.ERROR, "No Common Resources");

@@ -7,6 +7,7 @@ import backend.exception.InvalidUriInputException;
 import com.google.common.collect.Sets;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -194,7 +195,6 @@ public class TopicManagerImpl implements TopicManager {
     HashMap<String, String> propertyLabels = getLabelsForProperties(solutions);
 	HashMap<String, String> typeLabels = getLabelsForType(solutions);
 	return getInfoFromQueryResult(solutions, typeLabels, propertyLabels, relatedPreviousResourceCounts);
-  
   }
   
 	  /**
@@ -213,10 +213,20 @@ public class TopicManagerImpl implements TopicManager {
 			List<TopicInfo> suggestions = new ArrayList<TopicInfo>();
 			for (QuerySolution topic : queryResult) {
 				String url = topic.get("uri").toString();
-				suggestions.add(new TopicInfo(url, topic.get("label").toString(), typeLabels.get(url),
-						propertyLabels.get(topic.get("sample_property").toString()), topic.get("previous_topic").toString(),
+				final String sampleProperty = topic.get("sample_property").toString();
+				String propertyLabel = propertyLabels.get(sampleProperty);
+				if (propertyLabel == null) {
+					propertyLabel = sampleProperty;
+				}
+				String typeLabel = typeLabels.get(url);
+				if (typeLabel == null) {
+					typeLabel = url;
+				}
+					suggestions.add(new TopicInfo(url, topic.get("label").toString(), typeLabel,
+						propertyLabel, topic.get("previous_topic").toString(),
 						relatedPreviousResourceCounts.get(url)));
 			}
+			suggestions.sort(Comparator.comparing(TopicInfo::getnRelatedPreviousResources).reversed());
 			return suggestions;
 	}
 
