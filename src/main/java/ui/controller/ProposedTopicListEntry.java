@@ -16,8 +16,11 @@ import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
+import javafx.util.Duration;
 import model.TopicInfo;
+import ui.util.TooltipHelper;
 
 /**
  * Controller class for an entry in the list of proposed topics. Contains
@@ -29,7 +32,7 @@ public class ProposedTopicListEntry {
 	private Parent root;
 
 	@FXML
-	private Label resourceLabel, typeLabel, relationLabel;
+	private Label resourceLabel, typeLabel, relationLabel, numberLabel;
 	@FXML
 	private Hyperlink hyper1;
 
@@ -55,32 +58,28 @@ public class ProposedTopicListEntry {
 		}
 
 		typeLabel.setText(topicInfo.getType());
+		TooltipHelper.addTooltipToLabel(typeLabel);
 		String previousTopicLabel = SWTApplication.getMainController()
 				.getProposedTopicInfo(topicInfo.getPreviousResource()).getLabel();
 		relationLabel.setText(topicInfo.getPropertyLabel() + ": " + previousTopicLabel);
+		TooltipHelper.addTooltipToLabel(relationLabel);
 		resourceLabel.setText(topicInfo.getLabel());
-		hyper1.setText("Wikipedia.com");
-		// btn1.setText("add to my topics ");
-		// btn1.setOnAction(e -> {
-		// try {
-		// SWTApplication.getTopicManager().addResourceToTopics(topicInfo.getResourceUrl());
-		// SWTApplication.getMainController().addTopicToAcceptedTopics(topicInfo);
-		// SWTApplication.getTopicManager().getSuggestionsForPreviousResources(SWTApplication.getNumberOfSuggestions());
-		// } catch (InvalidUriInputException e1) {
-		// // TODO add Alert?
-		// e1.printStackTrace();
-		// }
-		// }); Button removed
+		TooltipHelper.addTooltipToLabel(resourceLabel);
+		numberLabel.setText(topicInfo.getnRelatedPreviousResources() + "");
+		TooltipHelper.addTooltipToLabel(numberLabel, "Number of connections to your topics");
+		hyper1.setText("wikipedia.com");
+		TooltipHelper.addTooltipToLabel(hyper1, "Read more on Wikipedia");
 
 		root.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent e) {
 				try {
-				SWTApplication.getTopicManager().addResourceToTopics(topicInfo.getResourceUrl());
-				SWTApplication.getMainController().addTopicToAcceptedTopics(topicInfo);
-				List<TopicInfo> result = SWTApplication.getTopicManager().getSuggestionsForPreviousResources(SWTApplication.getNumberOfSuggestions());
-				SWTApplication.getMainController().getproposedTopicList().clearAndPopulateList(result);
-				}catch(InvalidUriInputException e1) {
+					SWTApplication.getTopicManager().addResourceToTopics(topicInfo.getResourceUrl());
+					SWTApplication.getMainController().addTopicToAcceptedTopics(topicInfo);
+					List<TopicInfo> result = SWTApplication.getTopicManager()
+							.getSuggestionsForPreviousResources(SWTApplication.getNumberOfSuggestions());
+					SWTApplication.getMainController().getproposedTopicList().clearAndPopulateList(result);
+				} catch (InvalidUriInputException e1) {
 					Alert a = new Alert(Alert.AlertType.ERROR, "No Common Resources");
 					a.showAndWait();
 				}
@@ -95,9 +94,9 @@ public class ProposedTopicListEntry {
 				e1.printStackTrace();
 			}
 		});
-
 	}
 
+	
 	public Parent getRoot() {
 		return root;
 	}

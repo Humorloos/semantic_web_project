@@ -12,19 +12,28 @@ public class TopicInfo {
 	private String typeLabel; // label for the type of resource
 	private String wikiUri; // uri to the wikipedia page of the object
 	private String previousResource; // The previous resource
+	private Integer nRelatedPreviousResources;
+
+	public Integer getnRelatedPreviousResources() {
+		return nRelatedPreviousResources;
+	}
 
 	/**
 	 * @param resourceUrl The URL, specifying the location of the resource, as a
 	 *                    {@link String}.
 	 * @param label       The label of the resource in english as a {@link String}.
 	 */
-	public TopicInfo(String resourceUrl, String label, String typeLabel, String propertyLabel, String previousResource) {
+	public TopicInfo(String resourceUrl, String label, String typeLabel, String propertyLabel, String previousResource,
+			final Integer nRelatedPreviousResources) {
 		this.resourceUrl = resourceUrl;
 		this.topicLabel = label.split("@")[0];
+		this.topicLabel = topicLabel.substring(0, 1).toUpperCase() + topicLabel.substring(1); //First letter uppercase for better readability
 		this.propertyLabel = propertyLabel.split("@")[0];
 		this.typeLabel = typeLabel.split("@")[0];
 		this.previousResource = previousResource;
-		this.wikiUri = "https://en.wikipedia.org/wiki/"+resourceUrl.replaceAll("http://dbpedia.org/resource/", ""); // TODO: construct from resourceUrl and wikipedia-url
+		this.wikiUri = "https://en.wikipedia.org/wiki/" + resourceUrl
+				.replaceAll("http://dbpedia.org/resource/", "");
+		this.nRelatedPreviousResources = nRelatedPreviousResources;
 	}
 
 	public String getResourceUrl() {

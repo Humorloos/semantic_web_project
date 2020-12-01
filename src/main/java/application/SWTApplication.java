@@ -2,6 +2,9 @@ package application;
 
 import java.io.IOException;
 
+import org.apache.jena.query.ARQ;
+import org.apache.jena.sys.JenaSystem;
+
 import backend.TopicManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -24,7 +27,7 @@ public class SWTApplication extends Application {
 	}
 	
 	public static int getNumberOfSuggestions() {
-		return MainSceneController.MAX_NUM_OF_SUGGESTIONS;
+		return mainController.getNumOfRequestedSuggestions();
 	}
 
 	/**
@@ -71,7 +74,8 @@ public class SWTApplication extends Application {
 
 	@Override
 	public void start(Stage window) throws Exception {
-
+		JenaSystem.init();
+		ARQ.init();
 		try {
 			this.window = window;
 			loadScenes();
