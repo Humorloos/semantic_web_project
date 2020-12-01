@@ -19,7 +19,7 @@ class TopicManagerImplIT {
   void getSuggestionsForCurrentTopicFindsCorrectNumberOfDestinationsAfterAddingSomeResources()
       throws InvalidUriInputException {
     // given
-    final int nProposals = 8;
+    final int nProposals = 20;
     final TopicManagerImpl cut = new TopicManagerImpl();
     cut.addResourceToTopics(RESOURCE_URI + "Mannheim");
     final String currentResource = RESOURCE_URI + "SAP_Arena";

@@ -89,7 +89,7 @@ public class MainSceneController implements Initializable {
 		try {
 			String resourceUrl = TopicManagerImpl.RESOURCE_URI + s;
 			String label = SWTApplication.getTopicManager().addResourceToTopics(resourceUrl);
-			TopicInfo info = new TopicInfo(resourceUrl, label, "", "", ""); //TODO add type of resource?
+			TopicInfo info = new TopicInfo(resourceUrl, label, "", "", "", 0); //TODO add type of resource?
 			this.acceptedTopicList.addTopic(info);
 		} catch (InvalidUriInputException e) {
 			Alert a = new Alert(Alert.AlertType.ERROR, "The resource could not be found");

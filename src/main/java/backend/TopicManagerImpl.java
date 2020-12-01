@@ -1,6 +1,8 @@
 package backend;
 
 
+import static java.lang.Integer.parseInt;
+
 import backend.exception.InvalidUriInputException;
 import com.google.common.collect.Sets;
 
@@ -8,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import model.TopicInfo;
@@ -128,17 +131,20 @@ public class TopicManagerImpl implements TopicManager {
     int queryCount = 0, resourcesFound = 0;
     final Set<String> proposals = new HashSet<>();
     final Set<String> presentTypes = new HashSet<>();
+    final HashMap<String, Integer> relatedPreviousResourceCounts = new HashMap<>();
     // loop for paging: run the query with 'pageSize' results until enough resources are found
     while (resourcesFound < numOfSuggestions) {
       // order resources in memoryModel by number of connections to previous resources
       String query = SPARQL_PREFIXES +
-          "SELECT ?new_word (GROUP_CONCAT(DISTINCT ?type) AS ?types)"
+          "SELECT ?new_word "
+          + "(GROUP_CONCAT(DISTINCT ?type) AS ?types) "
+          + "(COUNT(DISTINCT ?old_word) AS ?n_related_previous_resources)"
           + "WHERE { { ?old_word ?p ?new_word " + previousResourceFilter + "} "
           + "UNION {?new_word ?p ?old_word " + previousResourceFilter + "} . "
           + "?new_word rdf:type ?type "
           + "FILTER (?p NOT IN (" + String.join(",", MEANINGLESS_PROPERTIES) + "))} "
           + "GROUP BY ?new_word "
-          + "ORDER BY DESC(COUNT(DISTINCT ?old_word))"
+          + "ORDER BY DESC(?n_related_previous_resources)"
           + "LIMIT " + pageSize + " OFFSET " + queryCount * pageSize;
       final ResultSet orderedResources = getSelectQueryResultSet(query);
       queryCount++;
@@ -156,7 +162,10 @@ public class TopicManagerImpl implements TopicManager {
         if (proposalTypeSet.size() > 0) {
           presentTypes.addAll(proposalTypeSet);
           resourcesFound++;
-          proposals.add(nextProposal.get("?new_word").toString());
+					final String proposalUrl = nextProposal.get("?new_word").toString();
+					proposals.add(proposalUrl);
+					relatedPreviousResourceCounts.put(
+							proposalUrl, nextProposal.get("n_related_previous_resources").asLiteral().getInt());
         }
       }
     }
@@ -184,7 +193,7 @@ public class TopicManagerImpl implements TopicManager {
         + " && ?uri = <" + proposal + ">)} ").next()).collect(Collectors.toList());
     HashMap<String, String> propertyLabels = getLabelsForProperties(solutions);
 	HashMap<String, String> typeLabels = getLabelsForType(solutions);
-	return getInfoFromQueryResult(solutions, typeLabels, propertyLabels);
+	return getInfoFromQueryResult(solutions, typeLabels, propertyLabels, relatedPreviousResourceCounts);
   
   }
   
@@ -199,11 +208,14 @@ public class TopicManagerImpl implements TopicManager {
 		 *                       marking the relation to another resource.
 		 * @return List of {@link TopicInfo}s constructed from the given data.
 		 */
-	private List<TopicInfo> getInfoFromQueryResult(List<QuerySolution> queryResult, HashMap<String, String> typeLabels, HashMap<String, String> propertyLabels) {
+    private List<TopicInfo> getInfoFromQueryResult(List<QuerySolution> queryResult, HashMap<String, String> typeLabels,
+        HashMap<String, String> propertyLabels, final HashMap<String, Integer> relatedPreviousResourceCounts) {
 			List<TopicInfo> suggestions = new ArrayList<TopicInfo>();
 			for (QuerySolution topic : queryResult) {
 				String url = topic.get("uri").toString();
-				suggestions.add(new TopicInfo(url, topic.get("label").toString(), typeLabels.get(url), propertyLabels.get(topic.get("sample_property").toString()), topic.get("previous_topic").toString()));
+				suggestions.add(new TopicInfo(url, topic.get("label").toString(), typeLabels.get(url),
+						propertyLabels.get(topic.get("sample_property").toString()), topic.get("previous_topic").toString(),
+						relatedPreviousResourceCounts.get(url)));
 			}
 			return suggestions;
 	}
