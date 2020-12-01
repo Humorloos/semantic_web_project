@@ -7,11 +7,14 @@ import java.util.ResourceBundle;
 import application.SWTApplication;
 import backend.TopicManagerImpl;
 import backend.exception.InvalidUriInputException;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
@@ -56,18 +59,41 @@ public class MainSceneController implements Initializable {
 		this.proposedTopicList = new ProposedTopicList();
 		this.proposedTopicBase.getChildren().add(proposedTopicList.getRoot());
 		this.acceptedTopicBase.getChildren().add(acceptedTopicList.getRoot());
-
+		
+		ProgressIndicator progressIndicator = new ProgressIndicator();
+		MyService myService = new MyService();
 		// run search on enter
 		this.text1.setOnKeyPressed(e -> {
 			if (e.getCode().equals(KeyCode.ENTER)) {
-				onClick();
+				//onClick();
+				myService.restart();
 			}
 		});
+		
+		progressIndicator.progressProperty().unbind();
+        progressIndicator.visibleProperty().bind(myService.runningProperty());
+        this.proposedTopicBase.getChildren().add(progressIndicator);
+        
+        
 		this.text1.requestFocus();
 		numberArea.setText(numOfRequestedSuggestions + "");
 		TextFieldConfigurator.configureNumericTextField(numberArea, MAX_NUM_OF_SUGGESTIONS);
 		TextFieldConfigurator.configureUrlTextField(text1);
 	}
+	
+	private class MyService extends Service<Void> {
+
+        @Override
+        protected Task<Void> createTask() {
+            return new Task<Void>() {
+                @Override
+                protected Void call() throws Exception {        
+                	onClick();
+                    return null;
+                }
+            };
+        }
+    }
 
 	public String onClick() {
 		String text = text1.getText();
