@@ -109,7 +109,11 @@ public class MainSceneController implements Initializable {
 		proposedTopicList.clearAndPopulateList(result);
 
 	}
-
+    
+	public ProposedTopicList getproposedTopicList(){
+		return this.proposedTopicList;
+	}
+	
 	public TopicInfo getProposedTopicInfo(String resourceUrl) {
 		return acceptedTopicList.getTopic(resourceUrl);
 	}
