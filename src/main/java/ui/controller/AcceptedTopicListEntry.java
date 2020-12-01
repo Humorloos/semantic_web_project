@@ -1,16 +1,21 @@
 package ui.controller;
 
 
+import java.awt.Desktop;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import application.SWTApplication;
-import backend.exception.InvalidUriInputException;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import model.TopicInfo;
+import ui.util.TooltipHelper;
 
 /**
  * Controller class for an entry in the list of proposed topics. Contains
@@ -23,6 +28,8 @@ public class AcceptedTopicListEntry {
 
 	@FXML
 	private Label resourceLabel;
+	@FXML
+	private Hyperlink link;
 
 	private TopicInfo topic;
 	
@@ -54,11 +61,23 @@ public class AcceptedTopicListEntry {
 			e.printStackTrace();
 		}
 
+		link.setText("wikipedia.com");
+		TooltipHelper.addTooltipToLabel(link, "Read more on Wikipedia");
 		resourceLabel.setText(topic.getLabel());	
 		
+		TooltipHelper.addTooltipToLabel(button1, "Remove from your topics");
 		button1.setOnAction(e -> {
 			SWTApplication.getTopicManager().removeResourceFromTopics(topic.getResourceUrl());
 			SWTApplication.getMainController().removeTopicAcceptedTopics(topic);
+		});
+		
+		link.setOnAction((ActionEvent e) -> {
+			try {
+				Desktop.getDesktop().browse(new URI(topic.getWikiUri()));
+			} catch (IOException | URISyntaxException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		});
 	}
 

@@ -20,6 +20,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
 import model.TopicInfo;
+import ui.util.TooltipHelper;
 
 /**
  * Controller class for an entry in the list of proposed topics. Contains
@@ -57,16 +58,17 @@ public class ProposedTopicListEntry {
 		}
 
 		typeLabel.setText(topicInfo.getType());
-		addTooltipToLabel(typeLabel);
+		TooltipHelper.addTooltipToLabel(typeLabel);
 		String previousTopicLabel = SWTApplication.getMainController()
 				.getProposedTopicInfo(topicInfo.getPreviousResource()).getLabel();
 		relationLabel.setText(topicInfo.getPropertyLabel() + ": " + previousTopicLabel);
-		addTooltipToLabel(relationLabel);
+		TooltipHelper.addTooltipToLabel(relationLabel);
 		resourceLabel.setText(topicInfo.getLabel());
-		addTooltipToLabel(resourceLabel);
+		TooltipHelper.addTooltipToLabel(resourceLabel);
 		numberLabel.setText(topicInfo.getnRelatedPreviousResources() + "");
-		addTooltipToLabel(numberLabel, "Number of connections to your topics");
-		hyper1.setText("Wikipedia.com");
+		TooltipHelper.addTooltipToLabel(numberLabel, "Number of connections to your topics");
+		hyper1.setText("wikipedia.com");
+		TooltipHelper.addTooltipToLabel(hyper1, "Read more on Wikipedia");
 
 		root.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			@Override
@@ -94,29 +96,7 @@ public class ProposedTopicListEntry {
 		});
 	}
 
-	/**
-	 * Adds the text of the given label as a tootltip to the label, so that the user
-	 * can read it if the text does not fit in the entry.
-	 * 
-	 * @param label The label to add a {@link Tooltip} to.
-	 * @param text  The text to add as a Tooltip.
-	 */
-	private void addTooltipToLabel(Label label, String text) {
-		Tooltip t = new Tooltip(text);
-		t.setShowDelay(Duration.millis(250));
-		label.setTooltip(t);
-	}
-
-	/**
-	 * Adds the text of the given label as a tootltip to the label, so that the user
-	 * can read it if the text does not fit in the entry.
-	 * 
-	 * @param label The label to add a {@link Tooltip} to.
-	 */
-	private void addTooltipToLabel(Label label) {
-		addTooltipToLabel(label, label.getText());
-	}
-
+	
 	public Parent getRoot() {
 		return root;
 	}
