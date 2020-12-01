@@ -16,7 +16,9 @@ import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
+import javafx.util.Duration;
 import model.TopicInfo;
 
 /**
@@ -29,7 +31,7 @@ public class ProposedTopicListEntry {
 	private Parent root;
 
 	@FXML
-	private Label resourceLabel, typeLabel, relationLabel;
+	private Label resourceLabel, typeLabel, relationLabel, numberLabel;
 	@FXML
 	private Hyperlink hyper1;
 
@@ -55,33 +57,27 @@ public class ProposedTopicListEntry {
 		}
 
 		typeLabel.setText(topicInfo.getType());
+		addTooltipToLabel(typeLabel);
 		String previousTopicLabel = SWTApplication.getMainController()
 				.getProposedTopicInfo(topicInfo.getPreviousResource()).getLabel();
 		relationLabel.setText(topicInfo.getPropertyLabel() + ": " + previousTopicLabel);
+		addTooltipToLabel(relationLabel);
 		resourceLabel.setText(topicInfo.getLabel());
+		addTooltipToLabel(resourceLabel);
+		numberLabel.setText(topicInfo.getnRelatedPreviousResources() + "");
+		addTooltipToLabel(numberLabel, "Number of connections to your topics");
 		hyper1.setText("Wikipedia.com");
-		// btn1.setText("add to my topics ");
-		// btn1.setOnAction(e -> {
-		// try {
-		// SWTApplication.getTopicManager().addResourceToTopics(topicInfo.getResourceUrl());
-		// SWTApplication.getMainController().addTopicToAcceptedTopics(topicInfo);
-		// SWTApplication.getTopicManager().getSuggestionsForPreviousResources(SWTApplication.getNumberOfSuggestions());
-		// } catch (InvalidUriInputException e1) {
-		// // TODO add Alert?
-		// e1.printStackTrace();
-		// }
-		// }); Button removed
 
 		root.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent e) {
 				try {
-				SWTApplication.getTopicManager().addResourceToTopics(topicInfo.getResourceUrl());
-				SWTApplication.getMainController().addTopicToAcceptedTopics(topicInfo);
-				List<TopicInfo> result = SWTApplication.getTopicManager().getSuggestionsForPreviousResources(
-						SWTApplication.getNumberOfSuggestions());
-				SWTApplication.getMainController().getproposedTopicList().clearAndPopulateList(result);
-				}catch(InvalidUriInputException e1) {
+					SWTApplication.getTopicManager().addResourceToTopics(topicInfo.getResourceUrl());
+					SWTApplication.getMainController().addTopicToAcceptedTopics(topicInfo);
+					List<TopicInfo> result = SWTApplication.getTopicManager()
+							.getSuggestionsForPreviousResources(SWTApplication.getNumberOfSuggestions());
+					SWTApplication.getMainController().getproposedTopicList().clearAndPopulateList(result);
+				} catch (InvalidUriInputException e1) {
 					Alert a = new Alert(Alert.AlertType.ERROR, "No Common Resources");
 					a.showAndWait();
 				}
@@ -96,7 +92,29 @@ public class ProposedTopicListEntry {
 				e1.printStackTrace();
 			}
 		});
+	}
 
+	/**
+	 * Adds the text of the given label as a tootltip to the label, so that the user
+	 * can read it if the text does not fit in the entry.
+	 * 
+	 * @param label The label to add a {@link Tooltip} to.
+	 * @param text  The text to add as a Tooltip.
+	 */
+	private void addTooltipToLabel(Label label, String text) {
+		Tooltip t = new Tooltip(text);
+		t.setShowDelay(Duration.millis(250));
+		label.setTooltip(t);
+	}
+
+	/**
+	 * Adds the text of the given label as a tootltip to the label, so that the user
+	 * can read it if the text does not fit in the entry.
+	 * 
+	 * @param label The label to add a {@link Tooltip} to.
+	 */
+	private void addTooltipToLabel(Label label) {
+		addTooltipToLabel(label, label.getText());
 	}
 
 	public Parent getRoot() {

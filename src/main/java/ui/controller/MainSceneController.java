@@ -16,6 +16,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.TextFlow;
+import javafx.stage.StageStyle;
 import model.TopicInfo;
 import ui.util.TextFieldConfigurator;
 
@@ -89,7 +90,6 @@ public class MainSceneController implements Initializable {
 	}
 
 	public void setResult(String s) {
-		// textArea1.setText(s);
 		// register the new Resource
 		try {
 			String resourceUrl = TopicManagerImpl.RESOURCE_URI + s;
@@ -97,7 +97,10 @@ public class MainSceneController implements Initializable {
 			TopicInfo info = new TopicInfo(resourceUrl, label, "", "", "", 0); //TODO add type of resource?
 			this.acceptedTopicList.addTopic(info);
 		} catch (InvalidUriInputException e) {
-			Alert a = new Alert(Alert.AlertType.ERROR, "The resource could not be found");
+			Alert a = new Alert(Alert.AlertType.ERROR, "If you have trouble entering a topic, check its Wikipedia-Url and copy everything after 'https://en.wikipedia.org/wiki/'.");
+			a.initStyle(StageStyle.UNIFIED);
+			a.getDialogPane().getStylesheets().add(SWTApplication.class.getResource("/css/general.css").toExternalForm());
+			a.setHeaderText("The resource could not be found. ");
 			a.showAndWait();
 		}
 
