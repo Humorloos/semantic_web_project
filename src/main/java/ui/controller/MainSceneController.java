@@ -7,11 +7,14 @@ import java.util.ResourceBundle;
 import application.SWTApplication;
 import backend.TopicManagerImpl;
 import backend.exception.InvalidUriInputException;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
@@ -44,6 +47,12 @@ public class MainSceneController implements Initializable {
 	private TextFlow textArea1;
 	@FXML
 	private TextField numberArea;
+	@FXML
+	private ProgressIndicator indicator;
+
+	public ProgressIndicator getProgressIndicator() {
+		return indicator;
+	}
 
 	private ProposedTopicList proposedTopicList;
 	private AcceptedTopicList acceptedTopicList;
@@ -60,19 +69,46 @@ public class MainSceneController implements Initializable {
 		// run search on enter
 		this.text1.setOnKeyPressed(e -> {
 			if (e.getCode().equals(KeyCode.ENTER)) {
-				onClick();
+				// onClick();
+				new Thread(createLoadTask()).start();
 			}
 		});
+		this.btn1.setOnAction(e -> {
+			new Thread(createLoadTask()).start();
+		});
+		indicator.progressProperty().unbind();
+		indicator.setVisible(false);
+
 		this.text1.requestFocus();
 		numberArea.setText(numOfRequestedSuggestions + "");
 		TextFieldConfigurator.configureNumericTextField(numberArea, MAX_NUM_OF_SUGGESTIONS);
 		TextFieldConfigurator.configureUrlTextField(text1);
 	}
 
-	public String onClick() {
+	private Task<Void> createLoadTask() {
+		Task<Void> loadTask = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				indicator.setVisible(true);
+				onClick();
+				return null;
+			}
+		};
+		loadTask.setOnSucceeded(e -> {
+			Platform.runLater(() -> {
+				fetchNewSuggestions();
+				indicator.setVisible(false);
+			});
+		});
+		loadTask.setOnFailed(e -> {
+			loadTask.getException().printStackTrace();
+		});
+		return loadTask;
+	}
+
+	public void onClick() {
 		String text = text1.getText();
 		setResult(text);
-		return text;
 	}
 
 	/**
@@ -94,14 +130,21 @@ public class MainSceneController implements Initializable {
 		try {
 			String resourceUrl = TopicManagerImpl.RESOURCE_URI + s;
 			String label = SWTApplication.getTopicManager().addResourceToTopics(resourceUrl);
-			TopicInfo info = new TopicInfo(resourceUrl, label, "", "", "", 0); //TODO add type of resource?
-			this.acceptedTopicList.addTopic(info);
+			Platform.runLater(() -> {
+				TopicInfo info = new TopicInfo(resourceUrl, label, "", "", "", 0);
+				this.acceptedTopicList.addTopic(info);
+			});
+
 		} catch (InvalidUriInputException e) {
-			Alert a = new Alert(Alert.AlertType.ERROR, "If you have trouble entering a topic, check its Wikipedia-Url and copy everything after 'https://en.wikipedia.org/wiki/'.");
-			a.initStyle(StageStyle.UNIFIED);
-			a.getDialogPane().getStylesheets().add(SWTApplication.class.getResource("/css/general.css").toExternalForm());
-			a.setHeaderText("The resource could not be found. ");
-			a.showAndWait();
+			Platform.runLater(() -> {
+				Alert a = new Alert(Alert.AlertType.ERROR,
+						"If you have trouble entering a topic, check its Wikipedia-Url and copy everything after 'https://en.wikipedia.org/wiki/'.");
+				a.initStyle(StageStyle.UNIFIED);
+				a.getDialogPane().getStylesheets()
+						.add(SWTApplication.class.getResource("/css/general.css").toExternalForm());
+				a.setHeaderText("The resource could not be found. ");
+				a.showAndWait();
+			});
 		}
 
 		try {
@@ -110,18 +153,18 @@ public class MainSceneController implements Initializable {
 			Alert a = new Alert(Alert.AlertType.ERROR, "Please give a number");
 			a.showAndWait();
 		}
-		// vorher
+	}
+
+	public void fetchNewSuggestions() {
 		List<TopicInfo> result = SWTApplication.getTopicManager()
 				.getSuggestionsForPreviousResources(numOfRequestedSuggestions);
-
 		proposedTopicList.clearAndPopulateList(result);
-
 	}
-    
-	public ProposedTopicList getproposedTopicList(){
+
+	public ProposedTopicList getproposedTopicList() {
 		return this.proposedTopicList;
 	}
-	
+
 	public TopicInfo getProposedTopicInfo(String resourceUrl) {
 		return acceptedTopicList.getTopic(resourceUrl);
 	}

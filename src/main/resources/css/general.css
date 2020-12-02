@@ -26,13 +26,16 @@
 	-fx-background-color: -fx-white;
 	-fx-border-width: 0 2 0 4;
 	-fx-border-color: -fx-white;
+}
+
+.clickable {
 	-fx-cursor: hand;
 }
 
-.cell:hover {
+.clickable:hover {
 	-fx-background-color: -fx-secondary;
 }
-.cell:hover .label {
+.clickable:hover .label {
 	-fx-text-fill: -fx-white;
 }
 

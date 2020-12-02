@@ -64,6 +64,7 @@ public class AcceptedTopicListEntry {
 		link.setText("wikipedia.com");
 		TooltipHelper.addTooltipToLabel(link, "Read more on Wikipedia");
 		resourceLabel.setText(topic.getLabel());	
+		TooltipHelper.addTooltipToLabel(resourceLabel);
 		
 		TooltipHelper.addTooltipToLabel(button1, "Remove from your topics");
 		button1.setOnAction(e -> {

@@ -8,6 +8,8 @@ import java.util.List;
 
 import application.SWTApplication;
 import backend.exception.InvalidUriInputException;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -56,7 +58,7 @@ public class ProposedTopicListEntry {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+		
 		typeLabel.setText(topicInfo.getType());
 		TooltipHelper.addTooltipToLabel(typeLabel);
 		String previousTopicLabel = SWTApplication.getMainController()
@@ -72,17 +74,30 @@ public class ProposedTopicListEntry {
 
 		root.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			@Override
-			public void handle(MouseEvent e) {
-				try {
-					SWTApplication.getTopicManager().addResourceToTopics(topicInfo.getResourceUrl());
-					SWTApplication.getMainController().addTopicToAcceptedTopics(topicInfo);
-					List<TopicInfo> result = SWTApplication.getTopicManager()
-							.getSuggestionsForPreviousResources(SWTApplication.getNumberOfSuggestions());
-					SWTApplication.getMainController().getproposedTopicList().clearAndPopulateList(result);
-				} catch (InvalidUriInputException e1) {
-					Alert a = new Alert(Alert.AlertType.ERROR, "No Common Resources");
-					a.showAndWait();
-				}
+			public void handle(MouseEvent event) {
+				Task<Void> 
+				loadTask = new Task<Void>() {
+					@Override
+					protected Void call() throws Exception {
+						SWTApplication.getMainController().getProgressIndicator().setVisible(true);
+						SWTApplication.getTopicManager().addResourceToTopics(topicInfo.getResourceUrl());
+						Platform.runLater(() -> {
+							SWTApplication.getMainController().addTopicToAcceptedTopics(topicInfo);
+						});
+						return null;
+					}
+				};
+				loadTask.setOnSucceeded(e -> {
+					Platform.runLater(() -> {
+						SWTApplication.getMainController().fetchNewSuggestions();
+						SWTApplication.getMainController().getProgressIndicator().setVisible(false);
+					});
+				});
+				loadTask.setOnFailed(e -> {
+					loadTask.getException().printStackTrace();
+				});
+				
+				new Thread(loadTask).start();
 			}
 		});
 
