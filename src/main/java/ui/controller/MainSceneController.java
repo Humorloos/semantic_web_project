@@ -117,12 +117,13 @@ public class MainSceneController implements Initializable {
 	 * @param topic The {@link TopicInfo} for the topic to add.
 	 */
 	public void addTopicToAcceptedTopics(TopicInfo topic) {
-		this.proposedTopicList.removeTopic(topic.getResourceUrl());
+//		this.proposedTopicList.removeTopic(topic.getResourceUrl()); Not necessary as the list is cleared anyways
 		this.acceptedTopicList.addTopic(topic);
 	}
 
 	public void removeTopicAcceptedTopics(TopicInfo topic) {
 		this.acceptedTopicList.removeTopicEntry(topic.getResourceUrl());
+		this.fetchNewSuggestions();
 	}
 
 	public void setResult(String s) {

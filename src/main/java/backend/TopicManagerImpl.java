@@ -1,20 +1,13 @@
 package backend;
 
 
-import static java.lang.Integer.parseInt;
-
-import backend.exception.InvalidUriInputException;
-import com.google.common.collect.Sets;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import model.TopicInfo;
 
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.jena.query.Query;
@@ -25,12 +18,12 @@ import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.sparql.core.ResultBinding;
+
+import com.google.common.collect.Sets;
+
+import backend.exception.InvalidUriInputException;
+import model.TopicInfo;
 
 public class TopicManagerImpl implements TopicManager {
 
@@ -309,23 +302,9 @@ public class TopicManagerImpl implements TopicManager {
 
   @Override
   public void removeResourceFromTopics(final String resourceUrl) {
-	  StmtIterator iter = memoryModel.listStatements();
-	  while (iter.hasNext()) {
-		  Statement stmt = iter.nextStatement();
-		  Resource  subject = stmt.getSubject(); 
-		  RDFNode   object    = stmt.getObject();
-		  Property  predicate = stmt.getPredicate();
-		  if(object.toString().equals(resourceUrl)||subject.toString().equals(resourceUrl) || predicate.toString().equals(resourceUrl)) {
-			  Statement stmt_delete = memoryModel.createStatement
-                      (memoryModel.createResource(subject),
-                       memoryModel.createProperty(predicate.toString()),
-                       memoryModel.createResource(object.toString())
-                      );
-              memoryModel.remove(stmt_delete);
-		  }
-	  }
+	  memoryModel.removeAll(memoryModel.createResource(resourceUrl), null, null);
+	  memoryModel.removeAll(null, null, memoryModel.createResource(resourceUrl));
 	  this.previousResources.remove(resourceUrl);
-	  currentTopic = "";
   }
 
   private ResultSet getSelectQueryResultSet(final String queryString) {
