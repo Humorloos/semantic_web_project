@@ -58,6 +58,7 @@ public class ProposedTopicList {
 	 */
 	protected void clearAndPopulateList(List<TopicInfo> proposals) {
 		topicList.getChildren().clear();
+		topics.clear();
 
 		for (TopicInfo topic : proposals) {
 			ProposedTopicListEntry entry = new ProposedTopicListEntry(topic);
