@@ -135,14 +135,14 @@ public class MainSceneController implements Initializable {
 				this.acceptedTopicList.addTopic(info);
 			});
 
-		} catch (InvalidUriInputException e) {
+		} catch (Exception e) {
 			Platform.runLater(() -> {
 				Alert a = new Alert(Alert.AlertType.ERROR,
 						"If you have trouble entering a topic, check its Wikipedia-Url and copy everything after 'https://en.wikipedia.org/wiki/'.");
 				a.initStyle(StageStyle.UNIFIED);
 				a.getDialogPane().getStylesheets()
 						.add(SWTApplication.class.getResource("/css/general.css").toExternalForm());
-				a.setHeaderText("The resource could not be found. ");
+				a.setHeaderText(e.getMessage());
 				a.showAndWait();
 			});
 		}

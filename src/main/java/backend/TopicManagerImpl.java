@@ -1,20 +1,14 @@
 package backend;
 
 
-import static java.lang.Integer.parseInt;
-
-import backend.exception.InvalidUriInputException;
-import com.google.common.collect.Sets;
-
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import model.TopicInfo;
 
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.jena.query.Query;
@@ -31,6 +25,11 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.sparql.core.ResultBinding;
+
+import com.google.common.collect.Sets;
+
+import backend.exception.InvalidUriInputException;
+import model.TopicInfo;
 
 public class TopicManagerImpl implements TopicManager {
 
@@ -65,7 +64,8 @@ public class TopicManagerImpl implements TopicManager {
    * @throws InvalidUriInputException if the provided resource is not specified in DBPedia
    */
   @Override
-  public String addResourceToTopics(final String resourceUrl) throws InvalidUriInputException {
+  public String addResourceToTopics(final String resourceUrl) throws InvalidUriInputException, InvalidParameterException {
+	if(previousResources.contains(resourceUrl)) throw new InvalidParameterException("Cannot add a topic more than once.");
     final Query constructSubjectQuery = QueryFactory.create(SPARQL_PREFIXES
         + "CONSTRUCT { <" + resourceUrl + "> ?p ?o . ?o rdf:type ?type }"
         + "WHERE { <" + resourceUrl + "> ?p ?o . "
