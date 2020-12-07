@@ -4,10 +4,8 @@ import java.awt.Desktop;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 
 import application.SWTApplication;
-import backend.exception.InvalidUriInputException;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -15,12 +13,9 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
-import javafx.util.Duration;
 import model.TopicInfo;
 import ui.util.TooltipHelper;
 
@@ -61,9 +56,14 @@ public class ProposedTopicListEntry {
 		
 		typeLabel.setText(topicInfo.getType());
 		TooltipHelper.addTooltipToLabel(typeLabel);
-		String previousTopicLabel = SWTApplication.getMainController()
-				.getProposedTopicInfo(topicInfo.getPreviousResource()).getLabel();
-		relationLabel.setText(topicInfo.getPropertyLabel() + ": " + previousTopicLabel);
+		try {
+			
+			String previousTopicLabel = SWTApplication.getMainController()
+					.getProposedTopicInfo(topicInfo.getPreviousResource()).getLabel();
+			relationLabel.setText(topicInfo.getPropertyLabel() + ": " + previousTopicLabel);
+		} catch (Exception e) {
+			System.out.println(topicInfo.getResourceUrl() + ": " + topicInfo.getPreviousResource());
+		}
 		TooltipHelper.addTooltipToLabel(relationLabel);
 		resourceLabel.setText(topicInfo.getLabel());
 		TooltipHelper.addTooltipToLabel(resourceLabel);

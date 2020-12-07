@@ -1,6 +1,7 @@
 package ui.controller;
 
 import java.net.URL;
+import java.security.InvalidParameterException;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -117,12 +118,13 @@ public class MainSceneController implements Initializable {
 	 * @param topic The {@link TopicInfo} for the topic to add.
 	 */
 	public void addTopicToAcceptedTopics(TopicInfo topic) {
-		this.proposedTopicList.removeTopic(topic.getResourceUrl());
+//		this.proposedTopicList.removeTopic(topic.getResourceUrl()); Not necessary as the list is cleared anyways
 		this.acceptedTopicList.addTopic(topic);
 	}
 
 	public void removeTopicAcceptedTopics(TopicInfo topic) {
 		this.acceptedTopicList.removeTopicEntry(topic.getResourceUrl());
+		this.fetchNewSuggestions();
 	}
 
 	public void setResult(String s) {
@@ -135,7 +137,7 @@ public class MainSceneController implements Initializable {
 				this.acceptedTopicList.addTopic(info);
 			});
 
-		} catch (Exception e) {
+		} catch (InvalidUriInputException | InvalidParameterException e) {
 			Platform.runLater(() -> {
 				Alert a = new Alert(Alert.AlertType.ERROR,
 						"If you have trouble entering a topic, check its Wikipedia-Url and copy everything after 'https://en.wikipedia.org/wiki/'.");
