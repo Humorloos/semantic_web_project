@@ -1,6 +1,7 @@
 package backend;
 
 
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -58,7 +59,9 @@ public class TopicManagerImpl implements TopicManager {
    * @throws InvalidUriInputException if the provided resource is not specified in DBPedia
    */
   @Override
-  public String addResourceToTopics(final String resourceUrl) throws InvalidUriInputException {
+  public String addResourceToTopics(final String resourceUrl) throws InvalidUriInputException, InvalidParameterException {
+	if(previousResources.contains(resourceUrl)) 
+		throw new InvalidParameterException("Cannot add a topic more than once.");
     final Query constructSubjectQuery = QueryFactory.create(SPARQL_PREFIXES
         + "CONSTRUCT { <" + resourceUrl + "> ?p ?o . ?o rdf:type ?type }"
         + "WHERE { <" + resourceUrl + "> ?p ?o . "
